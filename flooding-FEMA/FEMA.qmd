@@ -1,0 +1,102 @@
+
+```{r, warning = F, message = F,  results='hide'}
+# Load the libraries needed for the analysis
+library(tidyverse)
+library(sf)
+library(terra)
+library(dplyr)
+library(spData)
+library(spDataLarge)
+library(ggplot2)
+library(tmap)
+```
+
+
+```{r}
+FEMA <- st_read("/capstone/casaschools/fema-data/06111C_20240219/S_FLD_HAZ_AR.shp") 
+
+#check class of ejscreen
+#class(FEMA)
+
+#head(FEMA)
+
+
+CA_school_boundaries <- st_read("/capstone/casaschools/schools_data/California_School_District_Areas_2022-23/California_School_District_Areas_2022-23.shp") 
+
+
+#st_crs(FEMA) == st_crs(CA_school_boundaries)
+
+FEMA <- st_transform(FEMA, crs = st_crs(CA_school_boundaries))
+
+# Santa Paula Unified School District
+santa_paula <- CA_school_boundaries %>% filter(DistrictNa == "Santa Paula Unified") 
+
+ggplot() +
+  geom_sf(data = santa_paula)
+
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = santa_paula, alpha = 1, color = "red") +
+  geom_sf(data = FEMA,aes(fill=FLD_ZONE), alpha = 0.5) +
+  ggtitle("Severe Flood Hazard Areas in Ventura County") +
+  scale_fill_brewer(name="Flood Zones") +
+  theme_void()
+```
+
+```{r}
+# Clip the FEMA to be within the Santa Paula District
+
+sp_district <- st_intersection(FEMA, santa_paula)
+
+
+# Filter background to be multiple nearby districts
+ventura <- CA_school_boundaries %>% 
+  filter(CountyName == "Ventura")
+
+
+
+
+ggplot() +
+  geom_sf(data = ventura, fill = "white") +
+geom_sf(data = sp_district, aes(fill = FLD_ZONE), alpha = 0.5) +
+  theme_void()
+
+
+tmap_mode("view")
+
+tm_shape(ventura) +
+  tm_polygons(fill = "white") +
+  tm_shape(data = sp_district) +
+  tm_polygons("FLD_ZONE")
+
+
+tm_shape(sp_district) +
+  tm_polygons(data = ventura) +
+  tm_polygons("FLD_ZONE")
+
+```
+
+
+```{r}
+# Final Map on Presentation-------
+## Group the A's as High Risk ----
+
+
+sp_district_1 <- sp_district %>% 
+  mutate("Flood Risk" = ifelse(str_detect(FLD_ZONE, "A"), "High Risk",
+                       ifelse(str_detect(FLD_ZONE, "D"),"Undetermined",
+                              "Moderate to Low Risk Area")))
+
+
+custom_palette <- c("High Risk" = "#BD0026", "Undetermined" = "lightblue", "Moderate to Low Risk Area" = "#FECC5C")
+
+
+tm_shape(sp_district_1) +
+  tm_polygons("Flood Risk", palette = custom_palette)
+  
+
+
+```
+
