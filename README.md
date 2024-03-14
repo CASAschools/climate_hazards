@@ -30,6 +30,6 @@ The authors of this dashboard are [Liane Chen](https://github.com/lchenhub), [Ch
 
 
 ## Licence
-This work is licensed under a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+This work is licensed under a [Creative Commons Zero v1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/deed.en).
 
 
