@@ -1,0 +1,48 @@
+
+```{r, warning = F, message = F,  results='hide'}
+# Load the libraries needed for the analysis
+library(tidyverse)
+library(sf)
+library(terra)
+library(dplyr)
+library(spData)
+library(spDataLarge)
+library(ggplot2)
+library(tmap)
+
+```
+
+
+```{r}
+FEMA_state <- st_read("data/NFHL_06_20240307/NFHL_06_20240307.gdb")
+
+st_layers("data/NFHL_06_20240307/NFHL_06_20240307.gdb")
+```
+
+```{r}
+
+FEMA_state <- st_read("data/NFHL_06_20240307/NFHL_06_20240307.gdb", layer = "S_FLD_HAZ_AR")
+
+plot(FEMA_state)
+```
+
+
+
+
+```{r}
+FEMA <- st_read("data/06111C_20240219/S_FLD_HAZ_AR.shp") 
+
+#check class of ejscreen
+class(FEMA)
+
+head(FEMA)
+```
+
+```{r}
+ggplot(FEMA) +
+  geom_sf(aes(fill=FLD_ZONE), alpha = 0.5) +
+  ggtitle("Severe Flood Hazard Areas in Ventura County") +
+  scale_fill_brewer(name="Flood Zones") +
+  theme(panel.background = element_blank())
+```
+
