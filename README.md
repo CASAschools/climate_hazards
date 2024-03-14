@@ -12,11 +12,11 @@ The CASAschools capstone team identified 5 climate hazards that are actionable, 
   
 ## Data Sources
 The 5 climate hazards were obtaind from various open source data their sources are from the following:
-- Extreme heat: [Cal-Adapt API]<https://github.com/berkeley-gif/caladapt-docs>
-- Flooding: [FEMA flood]<https://hazards-fema.maps.arcgis.com/apps/webappviewer/index.html?id=8b0adb51996444d4879338b5529aa9cd> 
-- Extreme precipitation: [Cal-Adapt API]<https://github.com/berkeley-gif/caladapt-docs>
+- Extreme heat: [Cal-Adapt API](https://github.com/berkeley-gif/caladapt-docs)
+- Flooding: [FEMA flood](https://hazards-fema.maps.arcgis.com/apps/webappviewer/index.html?id=8b0adb51996444d4879338b5529aa9cd)
+- Extreme precipitation: [Cal-Adapt API](https://github.com/berkeley-gif/caladapt-docs)
 - Sea Level Rise:
-- Wildfire: [Cal Fire Fire Hazard Severity Zones]<https://osfm.fire.ca.gov/what-we-do/community-wildfire-preparedness-and-mitigation/fire-hazard-severity-zones/fire-hazard-severity-zones-maps>
+- Wildfire: [Cal Fire Fire Hazard Severity Zones](https://osfm.fire.ca.gov/what-we-do/community-wildfire-preparedness-and-mitigation/fire-hazard-severity-zones/fire-hazard-severity-zones-maps)
 
 
 
