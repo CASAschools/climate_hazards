@@ -7,7 +7,6 @@ The CASAschools capstone team identified 5 climate hazards that are actionable, 
 - Data Sources
 - Usage
 - Authors
-- Acknowledgments
 - License
   
 ## Data Sources
@@ -21,7 +20,7 @@ The 5 climate hazards were obtaind from the following open source databases:
 
 ## Usage
 
-
+This repository contains folders with notebooks detailing how to acess the data from API's and open source databases. As well as, how the data was wrangled and tidied for calculating the aggregated risks.   
 
 
 
