@@ -1,0 +1,179 @@
+---
+title: "caladapt-r"
+format: html
+---
+
+```{r}
+library(devtools)
+
+#devtools::install_github("ucanr-igis/caladaptr")
+library(caladaptr)
+#packageVersion("caladaptr")
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(lubridate)
+library(sf)
+```
+
+
+```{r}
+# Import school boundaries
+schools_bounds <- st_read("/capstone/casaschools/schools_data/California_School_District_Areas_2022-23/California_School_District_Areas_2022-23.shp") 
+
+schools_bounds <- st_make_valid(schools_bounds)
+
+
+unified <- schools_bounds %>% 
+  filter(CountyName %in% (c("Alameda","Butte","Calaveras")))
+
+percentile = data.frame()
+
+for (name in schools_bounds$DistrictNa) {
+  
+  df <- schools_bounds %>% 
+    filter(DistrictNa ==  name)
+  
+  request <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
+  ca_cvar(cvar = "tasmax") %>% 
+  ca_livneh(TRUE) %>% 
+  ca_period("day")  %>% 
+  ca_years(start = 1961, end = 1990)
+  
+  
+  school_data <- request %>% 
+  ca_getvals_tbl(quiet = TRUE) %>% 
+  mutate(val = as.numeric(val)) %>%
+  summarize(percentile_98 = quantile(val, probs = 0.98))
+  
+  school_data$DistrictNa <- name
+  
+  
+  percentile <- rbind(percentile, school_data)
+
+}
+
+
+percentile <- percentile %>% 
+  rename(DistrictNa = id)
+
+opp <- anti_join(schools_bounds, percentile, by = "DistrictNa")
+
+
+# Print or inspect the dataframe
+print(percentile_df)
+```
+```{r}
+percentile <- data.frame()
+
+for (name in schools_bounds$DistrictNa) {
+  
+  df <- schools_bounds %>% 
+    filter(DistrictNa ==  name)
+  
+  tryCatch({
+    request <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
+      ca_cvar(cvar = "tasmax") %>% 
+      ca_livneh(TRUE) %>% 
+      ca_period("day")  %>% 
+      ca_years(start = 1961, end = 1990)
+    
+    school_data <- request %>% 
+      ca_getvals_tbl(quiet = TRUE) %>% 
+      mutate(val = as.numeric(val)) %>%
+      summarize(percentile_98 = quantile(val, probs = 0.98))
+    
+    school_data$DistrictNa <- name
+    
+    percentile <- rbind(percentile, school_data)
+  }, error = function(e) {
+    cat("Error occurred for district:", name, "\n")
+    cat("Skipping this district.\n")
+  })
+}
+
+```
+
+
+
+```{r}
+# Start API request
+
+unified <- schools_bounds %>% 
+  filter(DistrictNa == "Del Norte County Unified")
+
+request <- ca_loc_sf(loc = unified, idfld = "CDCode") %>% 
+  ca_cvar(cvar = "tasmax") %>% 
+  ca_livneh(TRUE) %>% 
+  ca_period("day")  %>% 
+  ca_years(start = 1961, end = 1990)
+
+plot(request)
+```
+
+```{r}
+# Fetch the data
+trial <- request %>% 
+  ca_getvals_tbl(quiet = TRUE)
+
+
+school_data <- school_data %>% 
+  mutate(val = as.numeric(val))
+
+trt <- ca_loc_aoipreset(type = "counties", idfld = "fips", idval = "06015") %>% 
+  ca_cvar(cvar = "tasmax") %>% 
+  ca_livneh(TRUE) %>% 
+  ca_period("day") 
+
+trt_data <- trt %>% 
+  ca_getvals_tbl(quiet = TRUE)
+
+
+
+print(trt)
+```
+
+## Retry without intersections
+
+```{r}
+
+schools_bounds <- st_read("/capstone/casaschools/schools_data/schools_intersect/schools_intersect_bounds.shp") %>% 
+  filter(DistrictTy %in% c("Elementary","Unified"))
+
+
+schools_bounds <- st_make_valid(schools_bounds)
+
+plot(schools_bounds$geometry)
+
+
+percentile <- data.frame()
+
+for (name in schools_bounds$DistrictNa) {
+  
+  df <- schools_bounds %>% 
+    filter(DistrictNa ==  name)
+  
+  tryCatch({
+    request <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
+      ca_cvar(cvar = "tasmax") %>% 
+      ca_livneh(TRUE) %>% 
+      ca_period("day")  %>% 
+      ca_years(start = 1961, end = 1990)
+    
+    school_data <- request %>% 
+      ca_getvals_tbl(quiet = TRUE) %>% 
+      mutate(val = as.numeric(val)) %>%
+      summarize(percentile_98 = quantile(val, probs = 0.98))
+    
+    school_data$DistrictNa <- name
+    
+    percentile <- rbind(percentile, school_data)
+  }, error = function(e) {
+    cat("Error occurred for district:", name, "\n")
+    cat("Skipping this district.\n")
+  })
+}
+
+```
+
