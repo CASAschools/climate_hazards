@@ -15,73 +15,47 @@ library(ggplot2)
 library(tidyr)
 library(lubridate)
 library(sf)
+library(rlist)
 ```
 
+## Request daily maximum temperature for California school districts
 
 ```{r}
-# Import school boundaries
-schools_bounds <- st_read("/capstone/casaschools/schools_data/California_School_District_Areas_2022-23/California_School_District_Areas_2022-23.shp") 
+
+schools_bounds <- st_read("/capstone/casaschools/schools_data/schools_intersect/schools_intersect_bounds.shp") %>% 
+  # Elementary school boundaries covers the same boundary areas as high schools
+  # Reduce repition include only elementary and unified
+  filter(DistrictTy %in% c("Elementary","Unified"))
+
 
 schools_bounds <- st_make_valid(schools_bounds)
 
+#plot(schools_bounds$geometry)
 
-unified <- schools_bounds %>% 
-  filter(CountyName %in% (c("Alameda","Butte","Calaveras")))
-
-percentile = data.frame()
-
-for (name in schools_bounds$DistrictNa) {
-  
-  df <- schools_bounds %>% 
-    filter(DistrictNa ==  name)
-  
-  request <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
-  ca_cvar(cvar = "tasmax") %>% 
-  ca_livneh(TRUE) %>% 
-  ca_period("day")  %>% 
-  ca_years(start = 1961, end = 1990)
-  
-  
-  school_data <- request %>% 
-  ca_getvals_tbl(quiet = TRUE) %>% 
-  mutate(val = as.numeric(val)) %>%
-  summarize(percentile_98 = quantile(val, probs = 0.98))
-  
-  school_data$DistrictNa <- name
-  
-  
-  percentile <- rbind(percentile, school_data)
-
-}
-
-
-percentile <- percentile %>% 
-  rename(DistrictNa = id)
-
-opp <- anti_join(schools_bounds, percentile, by = "DistrictNa")
-
-
-# Print or inspect the dataframe
-print(percentile_df)
-```
-```{r}
+# Empty data frame
 percentile <- data.frame()
 
+# Loop across all school districts
 for (name in schools_bounds$DistrictNa) {
   
+  # Iterate through individual rows at a time
   df <- schools_bounds %>% 
     filter(DistrictNa ==  name)
   
   tryCatch({
+    # API request
     request <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
       ca_cvar(cvar = "tasmax") %>% 
+      # Historic dataset
       ca_livneh(TRUE) %>% 
       ca_period("day")  %>% 
       ca_years(start = 1961, end = 1990)
     
     school_data <- request %>% 
+      # Get values from request
       ca_getvals_tbl(quiet = TRUE) %>% 
       mutate(val = as.numeric(val)) %>%
+      # Calculate 98th percentile for each district historic data
       summarize(percentile_98 = quantile(val, probs = 0.98))
     
     school_data$DistrictNa <- name
@@ -89,10 +63,26 @@ for (name in schools_bounds$DistrictNa) {
     percentile <- rbind(percentile, school_data)
   }, error = function(e) {
     cat("Error occurred for district:", name, "\n")
+    # Print school districts API has difficulty with
     cat("Skipping this district.\n")
+    
+    
   })
 }
 
+
+
+```
+
+# ERRORS
+
+
+```{r}
+schools_ers <- c("Del Norte County Unified","Big Sur Unified", 
+                 "Cabrillo Unified", "South San Francisco Unified",
+                 "Belmont-Redwood Shores Elementary",
+                 "San Bruno Park Elementary", "San Mateo-Foster City",
+                 "Horicon Elementary") 
 ```
 
 
@@ -100,17 +90,78 @@ for (name in schools_bounds$DistrictNa) {
 ```{r}
 # Start API request
 
-unified <- schools_bounds %>% 
-  filter(DistrictNa == "Del Norte County Unified")
+error_bounds <- schools_bounds %>% 
+  filter(DistrictNa %in% c("Del Norte County Unified","Big Sur Unified", 
+                 "Cabrillo Unified", "South San Francisco Unified",
+                 "Belmont-Redwood Shores Elementary",
+                 "San Bruno Park Elementary", "San Mateo-Foster City",
+                 "Horicon Elementary"))
 
-request <- ca_loc_sf(loc = unified, idfld = "CDCode") %>% 
+
+# Empty data frame
+percentile_2 <- data.frame()
+
+# Loop across all school districts
+for (name in error_bounds$DistrictNa) {
+  
+  # Iterate through individual rows at a time
+  df <- error_bounds %>% 
+    filter(DistrictNa ==  name)
+  
+  tryCatch({
+    # API request
+    request_2 <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
+      ca_cvar(cvar = "tasmax") %>% 
+      # Historic dataset
+      ca_livneh(TRUE) %>% 
+      ca_period("day")  %>% 
+      ca_years(start = 1961, end = 1990) %>% 
+      ca_options(spatial_ag = "max")
+    
+    
+    print(request_2 %>% ca_preflight())
+
+    
+    
+    school_data_2 <- request_2 %>% 
+      # Get values from request
+      ca_getvals_tbl(quiet = TRUE) %>% 
+      mutate(val = as.numeric(val)) %>%
+      # Calculate 98th percentile for each district historic data
+      summarize(percentile_98 = quantile(val, probs = 0.98))
+    
+    school_data_2$DistrictNa <- name
+    
+    percentile_2 <- rbind(percentile_2, school_data_2)
+  }, error = function(e) {
+    cat("Error occurred for district:", name, "\n")
+    # Print school districts API has difficulty with
+    cat("Skipping this district.\n")
+    
+    
+  })
+}
+
+
+# Request by county number
+request <- ca_loc_aoipreset(type = "counties", idfld = "fips", idval = "06015") %>% 
   ca_cvar(cvar = "tasmax") %>% 
   ca_livneh(TRUE) %>% 
   ca_period("day")  %>% 
-  ca_years(start = 1961, end = 1990)
+  ca_years(start = 1961, end = 1990) %>% 
+  ca_options(spatial_ag = "max")
 
 plot(request)
+
+request %>% ca_preflight()
+
+
+del_mont <- request %>% 
+      # Get values from request
+      ca_getvals_tbl(quiet = TRUE) 
+
 ```
+
 
 ```{r}
 # Fetch the data
@@ -134,46 +185,86 @@ trt_data <- trt %>%
 print(trt)
 ```
 
-## Retry without intersections
+
+
+
+
+## Working with Errors
 
 ```{r}
+error_bounds <- st_read("/capstone/casaschools/schools_data/schools_intersect/schools_intersect_bounds.shp")
 
-schools_bounds <- st_read("/capstone/casaschools/schools_data/schools_intersect/schools_intersect_bounds.shp") %>% 
-  filter(DistrictTy %in% c("Elementary","Unified"))
-
-
-schools_bounds <- st_make_valid(schools_bounds)
-
-plot(schools_bounds$geometry)
+counties <- ca_aoipreset_geom("counties")
 
 
-percentile <- data.frame()
+error_bounds <- st_make_valid(error_bounds)
 
-for (name in schools_bounds$DistrictNa) {
+st_crs(err_bounds) == st_crs(counties)
+
+
+trial <- st_intersection(counties, error_bounds)
+
+trial <- trial %>% 
+  filter(state_name == "California") %>% 
+  filter(name %in% err_bounds$CountyName)
+
+
+# Empty data frame
+percentile_missing <- data.frame()
+
+# Loop across all school districts
+for (name in trial$DistrictNa) {
   
-  df <- schools_bounds %>% 
+  # Iterate through individual rows at a time
+  df <- trial %>% 
     filter(DistrictNa ==  name)
   
   tryCatch({
-    request <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
+    # API request
+    request_trial <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
       ca_cvar(cvar = "tasmax") %>% 
+      # Historic dataset
       ca_livneh(TRUE) %>% 
       ca_period("day")  %>% 
       ca_years(start = 1961, end = 1990)
     
-    school_data <- request %>% 
+    trial <- request %>% 
+      # Get values from request
       ca_getvals_tbl(quiet = TRUE) %>% 
       mutate(val = as.numeric(val)) %>%
+      # Calculate 98th percentile for each district historic data
       summarize(percentile_98 = quantile(val, probs = 0.98))
     
-    school_data$DistrictNa <- name
+    print(trial %>% ca_preflight())
     
-    percentile <- rbind(percentile, school_data)
+    
+    trial$DistrictNa <- name
+    
+    
+    percentile_missing <- rbind(percentile_missing, trial)
   }, error = function(e) {
     cat("Error occurred for district:", name, "\n")
+    # Print school districts API has difficulty with
     cat("Skipping this district.\n")
+    
+    
   })
 }
 
+
+
+```
+
+
+
+```{r}
+
+
+library(tmap)
+
+tmap_mode("view")
+
+tm_shape(trial) + 
+  tm_polygons()
 ```
 
