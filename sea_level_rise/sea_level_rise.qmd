@@ -1,0 +1,73 @@
+```{r, message = FALSE, warning = FALSE}
+library(sf)
+library(tidyverse)
+library(sf)
+library(here)
+library(tmap)
+```
+
+
+### Calculating sea level rise with information for just one county
+
+Data preparation. Here, we are reading in the shapefile for projected extent of indundation in Alameda County with .7m of sea level rise and a 100 year storm scenario.
+
+```{r}
+# read in sea level rise polygons
+alameda_slr <- st_read(here("data", "slr", "sfb_fldhazd_slr100_w100.shp"))
+
+# read in CA school districts
+ca_schools <- st_read(here("data", "schools", "California_School_District_Areas_2022-23.shp"))
+
+# filter to Alameda County districts
+alameda_districts <- ca_schools %>% 
+  filter(CountyName %in% "Alameda")
+
+plot(alameda_districts)
+```
+
+Next, we need to find the percentage of area of each school polygon that is inundated with this scenario. We need to ensure that the layers are on the same CRS so that we can perform spatial operations on them
+
+```{r}
+# get our school boundaries and our sea level rise on the same CRs
+alameda_slr <- st_transform(alameda_slr, crs = st_crs(alameda_districts))
+
+#st_crs(alameda_slr) == st_crs(alameda_districts)
+```
+
+Next, we are going to find the intersections. We are going to find the area of intersection of the sea level rise polygon on each school district. Then, we are going to calculate the areas using st_area, and join the two dataframes together. The units are in square meters.
+```{r}
+# find the intersections
+slr_districts <- st_intersection(alameda_districts, alameda_slr)
+
+plot(intersections)
+
+# find the area of each intersection polygon
+slr_districts$slr_area <- st_area(slr_districts)
+
+# also find the area of each original district polygon to compare
+alameda_districts$area <- st_area(alameda_districts)
+
+## join the two together
+# select only neccessary columns to join
+slr_districts <- slr_districts %>% 
+  select(DistrictNa, slr_area)
+
+# conduct a join, converting the sf objects into dataframes
+slr_alameda <- full_join(alameda_districts %>% as.data.frame(), 
+                     slr_districts %>% as.data.frame(), 
+                     by = "DistrictNa", keep = FALSE) %>% 
+  mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
+         slr_area = as.numeric(slr_area)) %>% 
+  mutate(slr_area = replace_na(slr_area, 0)) %>% # replace NAs with 0s
+  mutate(slr_percent = (slr_area / area) * 100) %>% # calculate sea level rise inundation percentage
+  st_sf(sf_column_name = "geometry.x") # convert back to an sf object
+```
+
+```{r}
+# plot the alameda school districts by percentage sea level rise
+tm_shape(slr_alameda) +
+  tm_polygons(fill = "slr_percent")
+```
+
+
+## Scaling up the process for all counties
