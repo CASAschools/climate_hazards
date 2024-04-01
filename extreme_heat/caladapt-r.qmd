@@ -181,7 +181,6 @@ trt_data <- trt %>%
   ca_getvals_tbl(quiet = TRUE)
 
 
-
 print(trt)
 ```
 
