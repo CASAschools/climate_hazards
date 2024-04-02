@@ -12,7 +12,7 @@ library(tmap)
 Data preparation. Here, we are reading in the shapefile for projected extent of indundation in Alameda County with .7m of sea level rise and a 100 year storm scenario.
 
 ```{r}
-# read in sea level rise polygons
+# read in sea level rise polygon
 alameda_slr <- st_read(here("data", "slr", "sfb_fldhazd_slr100_w100.shp"))
 
 # read in CA school districts
@@ -67,7 +67,22 @@ slr_alameda <- full_join(alameda_districts %>% as.data.frame(),
 # plot the alameda school districts by percentage sea level rise
 tm_shape(slr_alameda) +
   tm_polygons(fill = "slr_percent")
+
+tm_shape(alameda_slr) +
+  tm_polygons() +
+  tm_shape(slr_alameda) +
+  tm_polygons(fill = "slr_percent")
 ```
 
 
 ## Scaling up the process for all counties
+
+Beginning with just two counties, Contra Costa and Marin. The data is downloaded county by county, and the names of the files are all the same, so we need to rename the files
+
+```{r}
+# read in sea level rise polygons
+cc_slr <- st_read(here("data", "slr_contra_costa", "cc.shp"))
+
+```
+
+
