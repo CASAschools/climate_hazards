@@ -4,12 +4,12 @@ format: html
 ---
 
 ```{r}
-library(devtools)
-
+# Install caladaptr
 #devtools::install_github("ucanr-igis/caladaptr")
-library(caladaptr)
-#packageVersion("caladaptr")
 
+# Libraries
+library(devtools)
+library(caladaptr)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
@@ -21,7 +21,7 @@ library(rlist)
 ## Request daily maximum temperature for California school districts
 
 ```{r}
-
+# Import school bounds
 schools_bounds <- st_read("/capstone/casaschools/schools_data/schools_intersect/schools_intersect_bounds.shp") %>% 
   # Elementary school boundaries covers the same boundary areas as high schools
   # Reduce repition include only elementary and unified
@@ -74,173 +74,74 @@ for (name in schools_bounds$DistrictNa) {
 
 ```
 
-# ERRORS
-
+## Working with Errors
 
 ```{r}
+## By Census tracts
+
+tracts <- ca_aoipreset_geom("counties")
+
 schools_ers <- c("Del Norte County Unified","Big Sur Unified", 
                  "Cabrillo Unified", "South San Francisco Unified",
                  "Belmont-Redwood Shores Elementary",
                  "San Bruno Park Elementary", "San Mateo-Foster City",
                  "Horicon Elementary") 
+
+
+error_bounds <- schools_bounds %>% 
+  filter(DistrictNa %in% c(schools_ers))
+
+error_bounds <- st_make_valid(error_bounds)
+
+
+
+tracts_in_school <- st_intersection(tracts, error_bounds) %>% 
+  select(c("CDCode","DistrictNa"))
+
+
+
+data_df <- tracts_in_school %>%
+  st_cast("POLYGON") %>%
+  group_by(DistrictNa) %>%
+  summarise(geometry = st_union(geom)) %>%
+  st_sf()
+
+
+
+
 ```
 
 
-
 ```{r}
-# Start API request
-
-error_bounds <- schools_bounds %>% 
-  filter(DistrictNa %in% c("Del Norte County Unified","Big Sur Unified", 
-                 "Cabrillo Unified", "South San Francisco Unified",
-                 "Belmont-Redwood Shores Elementary",
-                 "San Bruno Park Elementary", "San Mateo-Foster City",
-                 "Horicon Elementary"))
-
-
 # Empty data frame
 percentile_2 <- data.frame()
 
 # Loop across all school districts
-for (name in error_bounds$DistrictNa) {
+for (name in data_df$DistrictNa) {
   
   # Iterate through individual rows at a time
-  df <- error_bounds %>% 
+  df <- data_df %>% 
     filter(DistrictNa ==  name)
   
   tryCatch({
     # API request
-    request_2 <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
-      ca_cvar(cvar = "tasmax") %>% 
-      # Historic dataset
-      ca_livneh(TRUE) %>% 
-      ca_period("day")  %>% 
-      ca_years(start = 1961, end = 1990) %>% 
-      ca_options(spatial_ag = "max")
-    
-    
-    print(request_2 %>% ca_preflight())
-
-    
-    
-    school_data_2 <- request_2 %>% 
-      # Get values from request
-      ca_getvals_tbl(quiet = TRUE) %>% 
-      mutate(val = as.numeric(val)) %>%
-      # Calculate 98th percentile for each district historic data
-      summarize(percentile_98 = quantile(val, probs = 0.98))
-    
-    school_data_2$DistrictNa <- name
-    
-    percentile_2 <- rbind(percentile_2, school_data_2)
-  }, error = function(e) {
-    cat("Error occurred for district:", name, "\n")
-    # Print school districts API has difficulty with
-    cat("Skipping this district.\n")
-    
-    
-  })
-}
-
-
-# Request by county number
-request <- ca_loc_aoipreset(type = "counties", idfld = "fips", idval = "06015") %>% 
-  ca_cvar(cvar = "tasmax") %>% 
-  ca_livneh(TRUE) %>% 
-  ca_period("day")  %>% 
-  ca_years(start = 1961, end = 1990) %>% 
-  ca_options(spatial_ag = "max")
-
-plot(request)
-
-request %>% ca_preflight()
-
-
-del_mont <- request %>% 
-      # Get values from request
-      ca_getvals_tbl(quiet = TRUE) 
-
-```
-
-
-```{r}
-# Fetch the data
-trial <- request %>% 
-  ca_getvals_tbl(quiet = TRUE)
-
-
-school_data <- school_data %>% 
-  mutate(val = as.numeric(val))
-
-trt <- ca_loc_aoipreset(type = "counties", idfld = "fips", idval = "06015") %>% 
-  ca_cvar(cvar = "tasmax") %>% 
-  ca_livneh(TRUE) %>% 
-  ca_period("day") 
-
-trt_data <- trt %>% 
-  ca_getvals_tbl(quiet = TRUE)
-
-
-print(trt)
-```
-
-
-
-
-
-## Working with Errors
-
-```{r}
-error_bounds <- st_read("/capstone/casaschools/schools_data/schools_intersect/schools_intersect_bounds.shp")
-
-counties <- ca_aoipreset_geom("counties")
-
-
-error_bounds <- st_make_valid(error_bounds)
-
-st_crs(err_bounds) == st_crs(counties)
-
-
-trial <- st_intersection(counties, error_bounds)
-
-trial <- trial %>% 
-  filter(state_name == "California") %>% 
-  filter(name %in% err_bounds$CountyName)
-
-
-# Empty data frame
-percentile_missing <- data.frame()
-
-# Loop across all school districts
-for (name in trial$DistrictNa) {
-  
-  # Iterate through individual rows at a time
-  df <- trial %>% 
-    filter(DistrictNa ==  name)
-  
-  tryCatch({
-    # API request
-    request_trial <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
+    request <- ca_loc_sf(loc = df, idfld = "DistrictNa") %>% 
       ca_cvar(cvar = "tasmax") %>% 
       # Historic dataset
       ca_livneh(TRUE) %>% 
       ca_period("day")  %>% 
       ca_years(start = 1961, end = 1990)
     
-    trial <- request %>% 
+    data_2 <- request %>% 
       # Get values from request
       ca_getvals_tbl(quiet = TRUE) %>% 
       mutate(val = as.numeric(val)) %>%
       # Calculate 98th percentile for each district historic data
       summarize(percentile_98 = quantile(val, probs = 0.98))
     
-    print(trial %>% ca_preflight())
+    data_2$DistrictNa <- name
     
-    
-    trial$DistrictNa <- name
-    
-    
-    percentile_missing <- rbind(percentile_missing, trial)
+    percentile_2 <- rbind(percentile_2, data_2)
   }, error = function(e) {
     cat("Error occurred for district:", name, "\n")
     # Print school districts API has difficulty with
@@ -253,6 +154,155 @@ for (name in trial$DistrictNa) {
 
 
 ```
+
+
+```{r}
+# Del Monte 
+big_sur <- tracts_in_school %>% 
+  filter(DistrictNa == "Del Monte") %>% 
+  st_cast(.,"POLYGON") %>%
+  st_union() %>% 
+  st_sf() %>% 
+  mutate("DistrictNa" = "Big Sur Unified")
+  
+
+
+
+
+request_trial <- ca_loc_sf(loc = big_sur, idfld = "DistrictNa") %>%
+      ca_cvar(cvar = "tasmax") %>%
+      # Historic dataset
+      ca_livneh(TRUE) %>%
+      ca_period("day")  %>%
+      ca_years(start = 1961, end = 1990) %>% 
+  ca_options(spatial_ag = "max")
+    
+plot(request_trial)
+
+request_trial %>% ca_preflight()
+
+
+trial_2 <- request_trial %>%
+  #Get values from request
+  ca_getvals_tbl(quiet = TRUE) %>%
+  mutate(val = as.numeric(val)) %>%
+  # Calculate 98th percentile for each district historic data
+  summarize(percentile_98 = quantile(val, probs = 0.98))
+
+
+```
+
+
+```{r}
+# Big Sur
+big_sur <- tracts_in_school %>% 
+  filter(DistrictNa == "Big Sur Unified") %>% 
+  st_cast(.,"POLYGON") %>%
+  st_union() %>% 
+  st_sf() %>%  
+  mutate("DistrictNa" = "Big Sur Unified")
+  
+# Cabrillo Unified
+cabrillo <- tracts_in_school %>% 
+  filter(DistrictNa == "Cabrillo Unified") %>% 
+  st_cast(.,"POLYGON") %>%
+  st_union() %>% 
+  st_sf() %>% 
+  mutate("DistrictNa" = "Cabrillo Unified")
+
+# South San Francisco Unified
+south_san_fran <- tracts_in_school %>% 
+  filter(DistrictNa == "South San Francisco Unified") %>% 
+  st_cast(.,"POLYGON") %>%
+  st_union() %>% 
+  st_sf() %>% 
+  mutate("DistrictNa" = "South San Francisco Unified")
+
+# Belmont-Redwood Shores Elementary
+bel_mont <- tracts_in_school %>% 
+  filter(DistrictNa == "Belmont-Redwood Shores Elementary") %>% 
+  st_cast(.,"POLYGON") %>%
+  st_union() %>% 
+  st_sf() %>% 
+  mutate("DistrictNa" = "Belmont-Redwood Shores Elementary")
+
+# San Bruno Park Elementary
+san_bruno <- tracts_in_school %>% 
+  filter(DistrictNa == "San Bruno Park Elementary") %>% 
+  st_cast(.,"POLYGON") %>%
+  st_union() %>% 
+  st_sf() %>% 
+  mutate("DistrictNa" = "San Bruno Park Elementary")
+
+# San Mateo-Foster City
+san_mateo <- tracts_in_school %>% 
+  filter(DistrictNa == "San Mateo-Foster City") %>% 
+  st_cast(.,"POLYGON") %>%
+  st_union() %>% 
+  st_sf() %>% 
+  mutate("DistrictNa" = "San Mateo-Foster City")
+
+# Horicon Elementary
+horicon <- tracts_in_school %>% 
+  filter(DistrictNa == "Horicon Elementary") %>% 
+  st_cast(.,"POLYGON") %>%
+  st_union() %>% 
+  st_sf() %>% 
+  mutate("DistrictNa" = "Horicon Elementary")
+
+
+data_df <- tracts_in_school %>%
+  st_cast("POLYGON") %>%
+  group_by(DistrictNa) %>%
+  summarise(geometry = st_union(geom)) %>%
+  st_sf()
+
+
+
+
+request_trial <- ca_loc_sf(loc = big_sur, idfld = "DistrictNa") %>%
+      ca_cvar(cvar = "tasmax") %>%
+      # Historic dataset
+      ca_livneh(TRUE) %>%
+      ca_period("day")  %>%
+      ca_years(start = 1961, end = 1990) %>% 
+  ca_options(spatial_ag = "max")
+    
+plot(request_trial)
+
+request_trial %>% ca_preflight()
+
+
+trial_2 <- request_trial %>%
+  #Get values from request
+  ca_getvals_tbl(quiet = TRUE) %>%
+  mutate(val = as.numeric(val)) %>%
+  # Calculate 98th percentile for each district historic data
+  summarize(percentile_98 = quantile(val, probs = 0.98))
+  
+
+
+
+
+
+# Plotting 
+
+trial_2 <- data.frame()
+
+
+trial_2 <- request %>%
+  # Get values from request
+  ca_getvals_tbl(quiet = TRUE) 
+    
+
+
+tmap_mode("view")
+
+tm_shape(data_df) +
+  tm_polygons()
+```
+
+
 
 
 
@@ -263,7 +313,16 @@ library(tmap)
 
 tmap_mode("view")
 
-tm_shape(trial) + 
-  tm_polygons()
+
+tracts_big_sur <- tracts %>% 
+  filter(tract %in% c(6053011400, 6053011502))
+
+
+
+tm_shape(tracts) +
+  tm_polygons(fill = "pink") +
+  tm_shape(data_df) +
+  tm_polygons(fill = "yellow")
+
 ```
 
