@@ -27,6 +27,8 @@ schools_bounds <- st_read("/capstone/casaschools/schools_data/schools_intersect/
   # Reduce repition include only elementary and unified
   filter(DistrictTy %in% c("Elementary","Unified"))
 
+# Remove duplicates
+schools_bounds <- schools_bounds[!duplicated(schools_bounds$DistrictNa),]
 
 schools_bounds <- st_make_valid(schools_bounds)
 
@@ -71,45 +73,42 @@ for (name in schools_bounds$DistrictNa) {
 }
 
 
-
 ```
 
 ## Working with Errors
 
 ```{r}
-## By Census tracts
+## By Counties tracts
+counties <- ca_aoipreset_geom("counties")
 
-tracts <- ca_aoipreset_geom("counties")
-
+# School districts that are not being read
 schools_ers <- c("Del Norte County Unified","Big Sur Unified", 
                  "Cabrillo Unified", "South San Francisco Unified",
                  "Belmont-Redwood Shores Elementary",
                  "San Bruno Park Elementary", "San Mateo-Foster City",
                  "Horicon Elementary") 
 
-
+# Filter school bounds to just be the error districts
 error_bounds <- schools_bounds %>% 
   filter(DistrictNa %in% c(schools_ers))
 
+# Make valid
 error_bounds <- st_make_valid(error_bounds)
 
-
-
-tracts_in_school <- st_intersection(tracts, error_bounds) %>% 
+# Intersect error bounds to be within CalAdapt census counties
+counties_in_school <- st_intersection(counties, error_bounds) %>% 
   select(c("CDCode","DistrictNa"))
 
-
-
-data_df <- tracts_in_school %>%
+# Unify all geoms by district name
+data_df <- counties_in_school %>%
   st_cast("POLYGON") %>%
   group_by(DistrictNa) %>%
   summarise(geometry = st_union(geom)) %>%
   st_sf()
 
 
-
-
 ```
+
 
 
 ```{r}
@@ -147,182 +146,97 @@ for (name in data_df$DistrictNa) {
     # Print school districts API has difficulty with
     cat("Skipping this district.\n")
     
-    
   })
 }
 
 
+```
+
+
+## Second Approach
+
+Clipping the school boundaries with CalAdapt pre disposed counties boundaries 
+worked for only 3 school districts. 5 school districts are still"fall outside 
+the area covered by Cal-Adapt". To work around this random points will be 
+generated in each remaining 5 school districts. These points will be used to determine 
+the historical maximum temperature.
+
+```{r}
+set.seed(123)
+
+# School districts that are not being read
+schools_ers <- c("Big Sur Unified", "South San Francisco Unified",
+                 "San Bruno Park Elementary", "San Mateo-Foster City",
+                 "Horicon Elementary") 
+
+data_df <- data_df %>% 
+  filter(DistrictNa %in% schools_ers)
+
+percentile_3 <- data.frame()
+
+
+for (name in data_df$DistrictNa){
+  print(name)
+  
+  # create new dataframe with one school district
+  school <- data_df %>% 
+    filter(DistrictNa == name)
+  
+  # Generate 50 random points for school district
+  school_points <- st_sample(school, 50)
+  
+  school_points <- st_transform(school_points, crs = "EPSG:4326" ) %>% 
+  st_coordinates()
+  
+  # API request
+  tryCatch({
+  request <- ca_loc_pt(coords = school_points) %>%
+  ca_cvar(cvar = "tasmax") %>%
+  # Historic dataset
+  ca_livneh(TRUE) %>%
+  ca_period("day")  %>%
+  ca_years(start = 1961, end = 1990)
+  
+  data_3 <- request %>% 
+      # Get values from request
+      ca_getvals_tbl(quiet = TRUE) %>% 
+      mutate(val = as.numeric(val)) %>%
+      # Calculate 98th percentile for each district historic data
+      summarize(percentile_98 = quantile(val, probs = 0.98))
+    
+    data_3$DistrictNa <- name
+    
+    percentile_3 <- rbind(percentile_3, data_3)
+  
+  
+  }, error = function(e) {
+    cat("Error occurred for district:", name, "\n")
+    # Print school districts API has difficulty with
+    cat("Skipping this district.\n")
+  
+})
+}
 
 ```
 
 
 ```{r}
-# Del Monte 
-big_sur <- tracts_in_school %>% 
-  filter(DistrictNa == "Del Monte") %>% 
-  st_cast(.,"POLYGON") %>%
-  st_union() %>% 
-  st_sf() %>% 
-  mutate("DistrictNa" = "Big Sur Unified")
-  
+# Join 98th percentile dataframes
+percentile_all <- rbind(percentile, percentile_2, percentile_3)
 
 
+# 98th percentile threshold for all school districts
+threshold <- percentile_all %>% 
+  summarise(percentile98_mean = mean(percentile_98))
 
 
-request_trial <- ca_loc_sf(loc = big_sur, idfld = "DistrictNa") %>%
-      ca_cvar(cvar = "tasmax") %>%
-      # Historic dataset
-      ca_livneh(TRUE) %>%
-      ca_period("day")  %>%
-      ca_years(start = 1961, end = 1990) %>% 
-  ca_options(spatial_ag = "max")
-    
-plot(request_trial)
+write.csv(threshold, "output_data/threshold.csv")
 
-request_trial %>% ca_preflight()
+paste("Average 98th percentile threshold for all of California's public school districts:",
+      round(threshold$percentile98_mean,3),"C")
 
-
-trial_2 <- request_trial %>%
-  #Get values from request
-  ca_getvals_tbl(quiet = TRUE) %>%
-  mutate(val = as.numeric(val)) %>%
-  # Calculate 98th percentile for each district historic data
-  summarize(percentile_98 = quantile(val, probs = 0.98))
-
+# 95.891 F
 
 ```
 
-
-```{r}
-# Big Sur
-big_sur <- tracts_in_school %>% 
-  filter(DistrictNa == "Big Sur Unified") %>% 
-  st_cast(.,"POLYGON") %>%
-  st_union() %>% 
-  st_sf() %>%  
-  mutate("DistrictNa" = "Big Sur Unified")
-  
-# Cabrillo Unified
-cabrillo <- tracts_in_school %>% 
-  filter(DistrictNa == "Cabrillo Unified") %>% 
-  st_cast(.,"POLYGON") %>%
-  st_union() %>% 
-  st_sf() %>% 
-  mutate("DistrictNa" = "Cabrillo Unified")
-
-# South San Francisco Unified
-south_san_fran <- tracts_in_school %>% 
-  filter(DistrictNa == "South San Francisco Unified") %>% 
-  st_cast(.,"POLYGON") %>%
-  st_union() %>% 
-  st_sf() %>% 
-  mutate("DistrictNa" = "South San Francisco Unified")
-
-# Belmont-Redwood Shores Elementary
-bel_mont <- tracts_in_school %>% 
-  filter(DistrictNa == "Belmont-Redwood Shores Elementary") %>% 
-  st_cast(.,"POLYGON") %>%
-  st_union() %>% 
-  st_sf() %>% 
-  mutate("DistrictNa" = "Belmont-Redwood Shores Elementary")
-
-# San Bruno Park Elementary
-san_bruno <- tracts_in_school %>% 
-  filter(DistrictNa == "San Bruno Park Elementary") %>% 
-  st_cast(.,"POLYGON") %>%
-  st_union() %>% 
-  st_sf() %>% 
-  mutate("DistrictNa" = "San Bruno Park Elementary")
-
-# San Mateo-Foster City
-san_mateo <- tracts_in_school %>% 
-  filter(DistrictNa == "San Mateo-Foster City") %>% 
-  st_cast(.,"POLYGON") %>%
-  st_union() %>% 
-  st_sf() %>% 
-  mutate("DistrictNa" = "San Mateo-Foster City")
-
-# Horicon Elementary
-horicon <- tracts_in_school %>% 
-  filter(DistrictNa == "Horicon Elementary") %>% 
-  st_cast(.,"POLYGON") %>%
-  st_union() %>% 
-  st_sf() %>% 
-  mutate("DistrictNa" = "Horicon Elementary")
-
-
-data_df <- tracts_in_school %>%
-  st_cast("POLYGON") %>%
-  group_by(DistrictNa) %>%
-  summarise(geometry = st_union(geom)) %>%
-  st_sf()
-
-
-
-
-request_trial <- ca_loc_sf(loc = big_sur, idfld = "DistrictNa") %>%
-      ca_cvar(cvar = "tasmax") %>%
-      # Historic dataset
-      ca_livneh(TRUE) %>%
-      ca_period("day")  %>%
-      ca_years(start = 1961, end = 1990) %>% 
-  ca_options(spatial_ag = "max")
-    
-plot(request_trial)
-
-request_trial %>% ca_preflight()
-
-
-trial_2 <- request_trial %>%
-  #Get values from request
-  ca_getvals_tbl(quiet = TRUE) %>%
-  mutate(val = as.numeric(val)) %>%
-  # Calculate 98th percentile for each district historic data
-  summarize(percentile_98 = quantile(val, probs = 0.98))
-  
-
-
-
-
-
-# Plotting 
-
-trial_2 <- data.frame()
-
-
-trial_2 <- request %>%
-  # Get values from request
-  ca_getvals_tbl(quiet = TRUE) 
-    
-
-
-tmap_mode("view")
-
-tm_shape(data_df) +
-  tm_polygons()
-```
-
-
-
-
-
-```{r}
-
-
-library(tmap)
-
-tmap_mode("view")
-
-
-tracts_big_sur <- tracts %>% 
-  filter(tract %in% c(6053011400, 6053011502))
-
-
-
-tm_shape(tracts) +
-  tm_polygons(fill = "pink") +
-  tm_shape(data_df) +
-  tm_polygons(fill = "yellow")
-
-```
 
