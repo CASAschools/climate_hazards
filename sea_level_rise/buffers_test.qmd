@@ -1,0 +1,154 @@
+```{r, warning = FALSE, message = FALSE}
+library(sf)
+library(tidyverse)
+library(here)
+library(tmap)
+library(terra)
+```
+
+
+```{r}
+# read in sea level rise rasters
+slr_coast <- rast("/capstone/casaschools/sea_level_rise/raw_data/slr_coast_0.5m_jdr.tif")
+
+slr_delta <- rast("/capstone/casaschools/sea_level_rise/raw_data/slr_delta_0.5m_jdr.tif")
+
+slr_sfbay <- rast("/capstone/casaschools/sea_level_rise/raw_data/slr_sfbay_0.5m_jdr.tif")
+
+# read in california schools data
+ca_schools <- st_read("/capstone/casaschools/schools_data/schools_buffer/",
+                        quiet = TRUE)
+
+# read in california districts
+ca_districts <- st_read("/capstone/casaschools/schools_data/California_School_District_Areas_2022-23/",
+                        quiet = TRUE)
+```
+
+
+```{r}
+start <- proc.time()
+
+# resample the sfbay and delta rasters to be 50m
+slr_delta <- resample(slr_delta, slr_coast, method = "bilinear")
+  
+slr_sfbay <- resample(slr_sfbay, slr_coast, method = "bilinear")
+
+# create a raster mosaic. "fun" determines what to do with overlaps. In this case, we'll take the mean of overlapping cells
+slr_ca <- mosaic(slr_coast, slr_delta, slr_sfbay, fun = "mean")
+
+# reproject the raster to be on the same crs as our schools layer
+slr_ca <- project(slr_ca, ca_schools)
+
+# vectorize our raster layer
+slr_schools <- as.polygons(slr_ca, round = TRUE, aggregate = TRUE, values = TRUE, extent = FALSE, digits = 0)
+
+#slr_schools2 <- as.polygons(slr_ca, values = FALSE)
+
+# convert our vector layer into an sf object
+slr_schools <- st_as_sf(slr_schools)
+
+#slr_schools2 <- st_as_sf(slr_schools2)
+
+# dissolve the boundaries of our vector layer so we have one large shape
+slr_schools_test <- st_union(slr_schools)
+
+# find the intersections
+slr_districts <- st_intersection(ca_schools, slr_schools_test)
+
+# find the area of each intersection polygon
+slr_districts$slr_area <- st_area(slr_districts)
+
+# also find the area of each original district polygon to compare
+ca_schools$area <- st_area(ca_schools)
+
+# end time
+end <- proc.time() - start
+```
+
+### some testing
+
+To make sure things aren't duplicated in the "slr_districts" layer. Schoolnames appear to be repeated, but FedIDs are not
+
+```{r}
+length(unique(slr_districts$SchoolName))
+
+length(unique(slr_districts$FedID))
+```
+
+Why are school names repeated? It seems like a lot of schools share names, which makes sense. There are 8 schools in different districts that are called "Abraham Lincoln Elementary". Something to be mindful of with search and stuff. Maybe if you can search for school, attach the district to the school name also?
+
+```{r}
+length(unique(ca_districts$SchoolName))
+
+ca_districts %>% 
+  group_by(SchoolName) %>% 
+  summarise(count = n()) %>% 
+  filter(count > 1)
+
+ca_districts %>% 
+  filter(SchoolName == "Abraham Lincoln Elementary")
+```
+
+
+```{r}
+## join the two together
+# select only neccessary columns to join
+slr_districts_join <- slr_districts %>% 
+  select(FedID, slr_area)
+
+# conduct a join, converting the sf objects into dataframes
+slr_ca_districts <- full_join(ca_districts %>% as.data.frame(), 
+                     slr_districts %>% as.data.frame(), 
+                     by = "SchoolName", keep = FALSE) %>% 
+  mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
+         slr_area = as.numeric(slr_area)) %>% 
+  mutate(slr_area = replace_na(slr_area, 0)) %>% # replace NAs with 0s
+  mutate(slr_percent = (slr_area / area) * 100) %>% # calculate sea level rise inundation percentage
+  st_sf(sf_column_name = "geometry.x") # convert back to an sf object
+
+# testing another join
+join_test <- left_join(ca_districts %>% as.data.frame(), 
+                       slr_districts_join %>% as.data.frame(), 
+                       by = "FedID", keep = FALSE, multiple = "first") %>% 
+  mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
+         slr_area = as.numeric(slr_area)) %>% 
+  mutate(slr_area = replace_na(slr_area, 0)) %>% # replace NAs with 0s
+  mutate(slr_percent = (slr_area / area) * 100) %>% # calculate sea level rise inundation percentage
+  st_sf(sf_column_name = "geometry.x")
+```
+
+### testing after the join
+
+Something I realize is that some of the school buffers extend into the ocean/sf bay. The data is not clipped to california, so it needs to be not just to the outer boundary but also to the inner bay. School buffers also need to be clipped to these boundaries. The cropping using st_intersection seems to work
+
+```{r}
+## clip buffers
+# get california boundary 
+ca_boundary <- st_union(ca_districts)
+
+# filter for alameda schools
+alameda_schools <- ca_schools %>% 
+  filter(CountyName == "Alameda")
+
+# crop school buffers to the california boundary
+alameda_crop <- st_intersection(alameda_schools, ca_boundary)
+
+# view the clipped buffers
+tm_shape(alameda_crop) +
+  tm_polygons()
+
+## clip slr data to the california inner boundaries
+slr_crop <- st_intersection(slr_schools_test, ca_boundary)
+```
+
+
+```{r}
+tmap_mode("view")
+
+tm_shape(ca_boundary) +
+  tm_polygons()
+```
+
+
+
+
