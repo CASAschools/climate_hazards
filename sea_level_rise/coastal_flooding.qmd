@@ -60,9 +60,9 @@ res(slr_sfbay) == res(slr_coast)
 slr_ca <- mosaic(slr_coast, slr_delta, slr_sfbay, fun = "mean")
 
 # check the new raster
-res(slr_ca)
+#res(slr_ca)
 
-plot(slr_ca)
+#plot(slr_ca)
 ```
 
 Now, we're ready to combine with school districts. Here, we'll be finding the area of each school district that is covered by our rasters. This will help us find the area of overlap of coastal flooding with each school district. First, we need to make sure that the raster is on the same crs as the schools
@@ -74,12 +74,12 @@ slr_ca <- project(slr_ca, ca_districts)
 # vectorize our raster layer
 slr_schools <- as.polygons(slr_ca, round = TRUE, aggregate = TRUE, values = TRUE, extent = FALSE, digits = 0)
 
-slr_schools2 <- as.polygons(slr_ca, values = FALSE)
+#slr_schools2 <- as.polygons(slr_ca, values = FALSE)
 
 # convert our vector layer into an sf object
 slr_schools <- st_as_sf(slr_schools)
 
-slr_schools2 <- st_as_sf(slr_schools2)
+#slr_schools2 <- st_as_sf(slr_schools2)
 
 # dissolve the boundaries of our vector layer so we have one large shape
 slr_schools_test <- st_union(slr_schools)
@@ -111,6 +111,24 @@ slr_ca_districts <- full_join(ca_districts %>% as.data.frame(),
   st_sf(sf_column_name = "geometry.x") # convert back to an sf object
 ```
 
+#### testing results
+
+1st test: Does intersection select the whole district or create new polygons that align with the flooding layer. The test involves picking one school district affected by sea level rise, cropping the sea level rise polygon to it, and then plotting the two on top of each other
+```{r}
+# find the intersections
+#slr_districts <- st_intersection(ca_districts, slr_schools_test)
+plot(SA)
+
+#SA <- slr_districts %>% 
+ # filter(DistrictNa == "Santa Ana Unified")
+
+SA_flood <- st_crop(slr_schools_test, st_bbox(SA))
+
+tm_shape(SA_flood) +
+  tm_polygons() +
+  tm_shape(SA) +
+  tm_polygons()
+```
 
 ### preparing for visualization
 
