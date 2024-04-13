@@ -1,0 +1,69 @@
+---
+title: "FEMA_schools"
+format: html
+editor: visual
+---
+
+```{r, warning = F, message = F,  results='hide'}
+# Load the libraries needed for the analysis
+library(tidyverse)
+library(sf)
+library(terra)
+library(dplyr)
+library(spData)
+library(spDataLarge)
+library(ggplot2)
+library(tmap)
+library(RColorBrewer)
+```
+
+```{r}
+#read in FEMA data for entire state
+FEMA_state <- st_read("/capstone/casaschools/fema-data/NFHL_06_20240401/NFHL_06_20240401.gdb", layer = "S_FLD_HAZ_AR")
+```
+
+```{r}
+# read in california schools data
+schools <- st_read("/capstone/casaschools/schools_data/schools_buffer/",
+                        quiet = TRUE)
+```
+
+```{r}
+st_crs(FEMA_state) == st_crs(schools)
+
+st_crs(schools)
+st_crs(FEMA_state)
+
+FEMA_state <- st_transform(FEMA_state, crs = st_crs(schools))
+
+```
+
+```{r}
+#filter to high risk only
+schools_high <- FEMA_state %>% 
+  mutate(flood_risk = ifelse(str_detect(FLD_ZONE, "A"), "High Risk", NA))
+
+schools_high <- schools_high %>% filter(flood_risk=="High Risk")
+
+#clip school buffers to flood intersections
+FEMA_schools <- st_intersection(schools, schools_high)
+```
+
+```{r}
+#find areas of FEMA areas in school intersected polygons
+FEMA_schools$FEMA_area <- st_area(FEMA_schools)
+
+#find area of school district boundaries
+schools$area <- st_area(schools)
+
+```
+
+```{r}
+#select neccessary columns
+FEMA_schools_join <- FEMA_schools %>% 
+  select(FedID, FEMA_area)
+```
+
+```{r}
+
+```
