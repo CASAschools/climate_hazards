@@ -107,7 +107,7 @@ slr_ca_districts <- full_join(ca_districts %>% as.data.frame(),
   st_sf(sf_column_name = "geometry.x") # convert back to an sf object
 
 # testing another join
-join_test <- left_join(ca_districts %>% as.data.frame(), 
+join_test <- left_join(ca_schools %>% as.data.frame(), 
                        slr_districts_join %>% as.data.frame(), 
                        by = "FedID", keep = FALSE, multiple = "first") %>% 
   mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
