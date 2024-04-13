@@ -1,0 +1,128 @@
+---
+title: "Accessing Extreme Heat Days for all Schools"
+format: html
+editor: "CASAschools Team"
+---
+
+```{r}
+# Libraries
+library(dplyr)
+library(tidyr)
+library(sf)
+library(lubridate)
+library(caladaptr)
+```
+
+```{r}
+# Load school point data
+school_points <- st_read("/capstone/casaschools/schools_data/California_Schools_2022-23/California_Schools_2022-23.shp")
+```
+
+
+```{r}
+# Filter to schools are active and remove unnecessary columns
+school_points <- school_points %>% filter(Status == "Active") %>% 
+  select(c(SCode))
+```
+
+
+```{r}
+# Import LOCA grid 
+locagrid_sf <- ca_locagrid_geom()
+
+# Check CRS of both data
+st_crs(school_points) == st_crs(locagrid_sf)
+
+# Transform school points to LOCA CRS
+school_points <- st_transform(school_points, crs = st_crs(locagrid_sf))
+
+# Spatially join points and grid
+ca_schools_loca_sf <- school_points %>% st_join(locagrid_sf) 
+ca_schools_loca_sf %>% st_drop_geometry()
+
+
+# Unique ID values
+# we only have to query 1,619 school points
+loca_ids_schools <- ca_schools_loca_sf %>% pull(id) %>% unique()
+
+
+# Create a point layer for the 1,619 LOCA grid cells that contain schools
+loca_ctr_sf <- locagrid_sf %>%
+  filter(id %in% loca_ids_schools) %>%
+  st_centroid()
+
+
+# API request 
+locaschl_et_cap <- ca_loc_sf(loc = loca_ctr_sf, idfld = "id") %>%
+  # CanESM2, CNRM-CM5, HadGEM2-ES, MIROC5
+  ca_gcm(gcms[1:4]) %>%
+  ca_scenario(c("rcp85")) %>%
+  ca_cvar("tasmax") %>%
+  ca_period("day") %>%
+  # Mid Century 
+  ca_years(start = 2035, end = 2064)
+
+# Check if request has no erros
+locaschl_et_cap %>% ca_preflight()
+
+
+#Next, we fetch the data. Because this is still a lot of locations, we’ll use ca_getvals_db() to save it in a database:
+data_dir <- tools::R_user_dir("caladaptr", which = "data")
+schools_dir <- file.path(data_dir, "schools") %>% normalizePath(mustWork = FALSE)
+if (!file.exists(schools_dir)) dir.create(schools_dir, recursive = TRUE)
+
+## Define a new SQLite file name
+locaschl_fn <- file.path(schools_dir, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
+
+
+## Fetch data
+locaschl_et_rtbl <- locaschl_et_cap %>%
+  ca_getvals_db(db_fn = locaschl_fn, db_tbl = "locaschl_et", new_recs_only = TRUE, quiet = TRUE)
+
+# Transform dataset 
+locaschl_et_rtbl_1 <- locaschl_et_rtbl %>% 
+  mutate(month = lubridate::month(dt),
+         year = lubridate::year(dt),
+         val = as.integer(val))
+
+# Set threshold determined in 'caladapt-r.qmd' and calculate days over
+locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
+  mutate(threshold = ifelse(val > 308.645, 1, 0)) %>%
+  # Find total number of days by month and year
+  group_by(id, month, year) %>%
+  summarise(count = sum(threshold))
+
+# View results
+head(locaschl_et_rtbl_1)
+
+# Find average monthly yearly days above threshold for 4 GCM's
+locaschl_et_rtbl_2 <- locaschl_et_rtbl_1 %>% 
+  mutate(avergae = count/4)
+
+# Rejoin with school points + LOCA id
+ca_schools_et_sf <- ca_schools_loca_sf %>% 
+  left_join(locaschl_et_rtbl_2, by = "id", copy = TRUE) 
+
+head(ca_schools_et_sf)
+
+
+
+# Find yearly extreme heat days
+ca_schools_et_year <- ca_schools_et_sf %>% 
+  group_by(SCode, year) %>% 
+  summarise(total = sum(avergae))
+  
+# Find sum total of extreme heat days across 1,0008 schools from 2035-2064
+ca_schools <- ca_schools_et_year %>% 
+  group_by(SCode) %>% 
+  summarise(total_35_64 = sum(total)) %>% 
+  mutate(total_35_64 = round(total_35_64,digits = 0))
+
+# Export file
+write.csv(ca_schools, "/capstone/casaschools/output_data/ca_schools_35_64.csv")
+
+
+write.csv(ca_schools, "/Users/hazelvaquero/CASAschools/climate_hazards/extreme_heat/output_data/ca_schools_rcp8.5_2035_2064.csv")
+
+```
+
