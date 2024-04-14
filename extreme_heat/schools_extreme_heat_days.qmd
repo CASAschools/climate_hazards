@@ -87,7 +87,7 @@ locaschl_et_rtbl_1 <- locaschl_et_rtbl %>%
 
 # Set threshold determined in 'caladapt-r.qmd' and calculate days over
 locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
-  mutate(threshold = ifelse(val > 308.645, 1, 0)) %>%
+  mutate(threshold = ifelse(val > 309.817, 1, 0)) %>%
   # Find total number of days by month and year
   group_by(id, month, year) %>%
   summarise(count = sum(threshold))
@@ -117,6 +117,7 @@ ca_schools <- ca_schools_et_year %>%
   group_by(SCode) %>% 
   summarise(total_35_64 = sum(total)) %>% 
   mutate(total_35_64 = round(total_35_64,digits = 0))
+
 
 # Export file
 write.csv(ca_schools, "/capstone/casaschools/output_data/ca_schools_35_64.csv")
