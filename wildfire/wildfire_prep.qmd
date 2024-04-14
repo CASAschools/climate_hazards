@@ -7,7 +7,7 @@ library(terra)
 
 ```{r}
 # read in wildfire data
-whp_us <- rast("/capstone/casaschools/wildfire/raw_data/whp2023_cls_conus.tif")
+#whp_us <- rast("/capstone/casaschools/wildfire/raw_data/whp2023_cls_conus.tif")
 
 whp_ca <- rast("/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
 
@@ -89,6 +89,42 @@ whp_reclass <- classify(whp_ca, rcl = rcl_table)
 summary(whp_reclass)
 ```
 
+### calculating the value of wildfire hazard potential for every school buffer
+
+The next step in this process is to assign wildfire hazard potential scores for every buffer. This involves taking every cell that overlaps with the school buffers and averaging the wildfire hazard potential score. We'll include cells on the boundary without interpolating scores based on percentage of area. The rationale for this is that score corresponds to the entire cell. If a cell has a wildfire hazard potential score of 2, a buffer boundary cutting it in half doesn't also divide the score by 2. The entire underlying area has a score of 2.
+
+```{r}
+# test with a subset first
+# select one school
+envision <- ca_schools %>% 
+  filter(FedID == "060161410947")
+
+# select overlapping raster cells
+whp_envision <- crop(whp_reclass, envision)
+
+whp_envision2 <- crop(whp_reclass, envision, mask = TRUE)
+
+plot(whp_envision2)
+
+## convert to polygons to manually calculate mean
+whp_test_poly <- as.polygons(whp_envision2, values = TRUE, aggregate = FALSE) %>% 
+  st_as_sf()
+
+envision_mean_test <- mean(whp_test_poly$Band_1)
+
+# plot to see that it worked
+tm_shape(envision) +
+  tm_polygons(fill = NA) +
+  tm_shape(whp_envision2) +
+  tm_raster()
+
+# extract the mean value of all cells that intersect with the buffer
+# touches = TRUE grabs all of the cells that intersect, not just those fully contained within the polygon
+# bind = TRUE attaches the polygon information to the calculated mean
+envision_mean <- extract(whp_envision2, envision, fun = "mean", method = "simple", ID = TRUE, touches = TRUE, bind = TRUE) %>% 
+  as.data.frame()
+```
+
 
 ### testing 
 
@@ -100,5 +136,7 @@ tm_shape(whp_ca) +
 
 tm_shape(whp_reclass) +
   tm_raster()
+
+
 ```
 
