@@ -45,6 +45,9 @@ schools_high <- FEMA_state %>%
 
 schools_high <- schools_high %>% filter(flood_risk=="High Risk")
 
+#unionize
+schools_high <- st_union(schools_high)
+
 #clip school buffers to flood intersections
 FEMA_schools <- st_intersection(schools, schools_high)
 ```
@@ -65,5 +68,13 @@ FEMA_schools_join <- FEMA_schools %>%
 ```
 
 ```{r}
-
+# join high risk with schools to find percentage of area
+join_test <- left_join(schools %>% as.data.frame(),
+                       FEMA_schools_join %>% as.data.frame(),
+                       by = "FedID", keep = FALSE, multiple = "first") %>%
+  mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
+         FEMA_area = as.numeric(FEMA_area)) %>%
+  mutate(FEMA_area = replace_na(FEMA_area, 0)) %>% # replace NAs with 0s
+  mutate(FEMA_percent = (FEMA_area / area) * 100) %>% # calculate sea level rise inundation percentage
+  st_sf(sf_column_name = "geometry.x")
 ```
