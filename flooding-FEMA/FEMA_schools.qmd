@@ -48,6 +48,8 @@ schools_high <- schools_high %>% filter(flood_risk=="High Risk")
 #unionize
 schools_high <- st_union(schools_high)
 
+st_write(schools_high, "/capstone/casaschools/fema-data/intermediate_layers/fema_high_union.shp")
+
 #clip school buffers to flood intersections
 FEMA_schools <- st_intersection(schools, schools_high)
 ```
