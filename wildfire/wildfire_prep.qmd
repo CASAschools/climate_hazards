@@ -100,7 +100,7 @@ envision <- ca_schools %>%
   filter(FedID == "060161410947")
 
 # select overlapping raster cells
-whp_envision <- crop(whp_reclass, envision)
+#whp_envision <- crop(whp_reclass, envision)
 
 whp_envision2 <- crop(whp_reclass, envision, mask = TRUE)
 
@@ -122,7 +122,47 @@ tm_shape(envision) +
 # touches = TRUE grabs all of the cells that intersect, not just those fully contained within the polygon
 # bind = TRUE attaches the polygon information to the calculated mean
 envision_mean <- extract(whp_envision2, envision, fun = "mean", method = "simple", ID = TRUE, touches = TRUE, bind = TRUE) %>% 
-  as.data.frame()
+  st_as_sf()
+```
+
+
+#### doing it for the whole dataset
+
+```{r}
+# crop the whp raster to each school, using the buffers as a mask
+whp_schools_mask <- crop(whp_reclass, ca_schools, mask = TRUE)
+
+# plot the result to check
+# tm_shape(whp_schools) +
+#   tm_raster()
+
+# calculate the mean whp value of every school buffer
+# our function is mean, we remove NA values
+# touches = TRUE ensures that any cells that intersect, instead of being fully contained, are included
+# bind = TRUE binds the result to the 
+start <- proc.time()
+
+whp_schools <- extract(whp_schools_mask, ca_schools, fun = "mean", na.rm = TRUE, 
+                       method = "simple", touches = TRUE, bind = TRUE) %>% 
+  st_as_sf()
+
+end <- proc.time() - start
+
+# view the min and the max to see that it's between 0-5
+min(whp_schools$Band_1)
+max(whp_schools$Band_1)
+
+# find the number of rows that are NA
+sum(is.nan(whp_schools$Band_1))
+
+# round the values to the nearest whole number
+whp_schools <- whp_schools %>% 
+  rename(whp = Band_1) %>% 
+  mutate(whp = round(whp, digits = 0),
+         whp = ifelse(whp == 0, 1, whp))
+
+# replace 0s with 1s
+whp_schools <- ifelse(whp_schools$whp == 0, 1, whp_schools$whp)
 ```
 
 
