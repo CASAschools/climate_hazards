@@ -1,7 +1,7 @@
 ---
 title: "caladapt-r"
 format: html
-editor: "CASAschools"
+author: "CASAschools"
 ---
 
 ```{r}
@@ -299,7 +299,7 @@ locaschl_et_rtbl <- locaschl_et_cap %>%
 
 
 
-data_dir <- tools::R_user_dir("caladaptr", which = "data")
+data_dir <- tools::R_user_dir("caladaptr_threshold", which = "data")
 schools_dir <- file.path(data_dir, "schools") %>% normalizePath(mustWork = FALSE)
 if (!file.exists(schools_dir)) dir.create(schools_dir, recursive = TRUE)
 
@@ -315,8 +315,8 @@ locaschl_et_rtbl <- locaschl_et_cap %>%
 locaschl_et_rtbl_1 <- locaschl_et_rtbl %>%  
   collect()
 
-
 # 97.561292 F
+# 36.42294
 # Each school point 98th percentile was calculated and then averaged
 locaschl_et_rtbl_1 %>% 
   group_by(id) %>% 
