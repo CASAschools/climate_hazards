@@ -1,0 +1,242 @@
+---
+title: "caladapt-r"
+format: html
+---
+
+```{r}
+# Install caladaptr
+#devtools::install_github("ucanr-igis/caladaptr")
+
+# Libraries
+library(devtools)
+library(caladaptr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(lubridate)
+library(sf)
+library(rlist)
+```
+
+## Request daily maximum temperature for California school districts
+
+```{r}
+# Import school bounds
+schools_bounds <- st_read("/capstone/casaschools/schools_data/schools_intersect/schools_intersect_bounds.shp") %>% 
+  # Elementary school boundaries covers the same boundary areas as high schools
+  # Reduce repition include only elementary and unified
+  filter(DistrictTy %in% c("Elementary","Unified"))
+
+# Remove duplicates
+schools_bounds <- schools_bounds[!duplicated(schools_bounds$DistrictNa),]
+
+schools_bounds <- st_make_valid(schools_bounds)
+
+#plot(schools_bounds$geometry)
+
+# Empty data frame
+percentile <- data.frame()
+
+# Loop across all school districts
+for (name in schools_bounds$DistrictNa) {
+  
+  # Iterate through individual rows at a time
+  df <- schools_bounds %>% 
+    filter(DistrictNa ==  name)
+  
+  tryCatch({
+    # API request
+    request <- ca_loc_sf(loc = df, idfld = "CDSCode") %>% 
+      ca_cvar(cvar = "pr") %>% 
+      # Historic dataset
+      ca_livneh(TRUE) %>% 
+      ca_period("day")  %>% 
+      ca_years(start = 1961, end = 1990)
+    
+    school_data <- request %>% 
+      # Get values from request
+      ca_getvals_tbl(quiet = TRUE) %>% 
+      mutate(val = as.numeric(val)) %>%
+      # Calculate 98th percentile for each district historic data
+     summarize(percentile_98 = quantile(val, probs = 0.98))
+    
+    school_data$DistrictNa <- name
+    
+    percentile <- rbind(percentile, school_data)
+  }, error = function(e) {
+    cat("Error occurred for district:", name, "\n")
+    # Print school districts API has difficulty with
+    cat("Skipping this district.\n")
+    
+    
+  })
+}
+
+
+```
+
+## Working with Errors
+
+```{r}
+## By Counties tracts
+counties <- ca_aoipreset_geom("counties")
+
+# School districts that are not being read
+schools_ers <- c("Del Norte County Unified","Big Sur Unified", 
+                 "Cabrillo Unified", "South San Francisco Unified",
+                 "Belmont-Redwood Shores Elementary",
+                 "San Bruno Park Elementary", "San Mateo-Foster City",
+                 "Horicon Elementary") 
+
+# Filter school bounds to just be the error districts
+error_bounds <- schools_bounds %>% 
+  filter(DistrictNa %in% c(schools_ers))
+
+# Make valid
+error_bounds <- st_make_valid(error_bounds)
+
+# Intersect error bounds to be within CalAdapt census counties
+counties_in_school <- st_intersection(counties, error_bounds) %>% 
+  select(c("CDCode","DistrictNa"))
+
+# Unify all geoms by district name
+data_df <- counties_in_school %>%
+  st_cast("POLYGON") %>%
+  group_by(DistrictNa) %>%
+  summarise(geometry = st_union(geom)) %>%
+  st_sf()
+
+
+```
+
+
+
+```{r}
+# Empty data frame
+percentile_2 <- data.frame()
+
+# Loop across all school districts
+for (name in data_df$DistrictNa) {
+  
+  # Iterate through individual rows at a time
+  df <- data_df %>% 
+    filter(DistrictNa ==  name)
+  
+  tryCatch({
+    # API request
+    request <- ca_loc_sf(loc = df, idfld = "DistrictNa") %>% 
+      ca_cvar(cvar = "pr") %>% 
+      # Historic dataset
+      ca_livneh(TRUE) %>% 
+      ca_period("day")  %>% 
+      ca_years(start = 1961, end = 1990)
+    
+    data_2 <- request %>% 
+      # Get values from request
+      ca_getvals_tbl(quiet = TRUE) %>% 
+      mutate(val = as.numeric(val)) %>%
+      # Calculate 98th percentile for each district historic data
+      summarize(percentile_98 = quantile(val, probs = 0.98))
+    
+    data_2$DistrictNa <- name
+    
+    percentile_2 <- rbind(percentile_2, data_2)
+  }, error = function(e) {
+    cat("Error occurred for district:", name, "\n")
+    # Print school districts API has difficulty with
+    cat("Skipping this district.\n")
+    
+  })
+}
+
+
+```
+
+
+## Second Approach
+
+Clipping the school boundaries with CalAdapt pre disposed counties boundaries 
+worked for only 3 school districts. 5 school districts are still"fall outside 
+the area covered by Cal-Adapt". To work around this random points will be 
+generated in each remaining 5 school districts. These points will be used to determine 
+the historical maximum temperature.
+
+```{r}
+set.seed(123)
+
+# School districts that are not being read
+schools_ers <- c("Big Sur Unified", "South San Francisco Unified",
+                 "San Bruno Park Elementary", "San Mateo-Foster City",
+                 "Horicon Elementary") 
+
+data_df <- data_df %>% 
+  filter(DistrictNa %in% schools_ers)
+
+percentile_3 <- data.frame()
+
+
+for (name in data_df$DistrictNa){
+  print(name)
+  
+  # create new dataframe with one school district
+  school <- data_df %>% 
+    filter(DistrictNa == name)
+  
+  # Generate 50 random points for school district
+  school_points <- st_sample(school, 50)
+  
+  school_points <- st_transform(school_points, crs = "EPSG:4326" ) %>% 
+  st_coordinates()
+  
+  # API request
+  tryCatch({
+  request <- ca_loc_pt(coords = school_points) %>%
+  ca_cvar(cvar = "pr") %>%
+  # Historic dataset
+  ca_livneh(TRUE) %>%
+  ca_period("day")  %>%
+  ca_years(start = 1961, end = 1990)
+  
+  data_3 <- request %>% 
+      # Get values from request
+      ca_getvals_tbl(quiet = TRUE) %>% 
+      mutate(val = as.numeric(val)) %>%
+      # Calculate 98th percentile for each district historic data
+      summarize(percentile_98 = quantile(val, probs = 0.98))
+    
+    data_3$DistrictNa <- name
+    
+    percentile_3 <- rbind(percentile_3, data_3)
+  
+  
+  }, error = function(e) {
+    cat("Error occurred for district:", name, "\n")
+    # Print school districts API has difficulty with
+    cat("Skipping this district.\n")
+  
+})
+}
+
+```
+
+
+```{r}
+# Join 98th percentile dataframes
+percentile_all <- rbind(percentile, percentile_2, percentile_3)
+
+
+# 98th percentile threshold for all school districts
+threshold <- percentile_all %>% 
+  summarise(percentile98_mean = mean(percentile_98))
+
+
+write.csv(threshold, "output_data/threshold_precip.csv")
+
+paste("Average 98th percentile threshold of yearly rainfall totals for all of California's public school districts:",
+      round(threshold$percentile98_mean,3),"mm")
+
+#0.735in
+
+```
+
+

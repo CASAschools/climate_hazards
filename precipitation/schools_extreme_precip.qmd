@@ -1,5 +1,5 @@
 ---
-title: "Accessing Extreme Heat Days for all Schools"
+title: "Accessing Extreme Precipitation Days for all Schools"
 format: html
 editor: "CASAschools Team"
 ---
@@ -123,5 +123,5 @@ ca_schools <- ca_schools_et_year %>%
 # Export file
 write.csv(ca_schools, "/capstone/casaschools/output_data/ca_schools_35_64_precip.csv")
 
-
+#write.csv(ca_schools, "/github/climate_hazards/output_data/ca_schools_35_64_precip.csv")
 ```
