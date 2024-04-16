@@ -176,11 +176,5 @@ tm_shape(whp_ca) +
 
 tm_shape(whp_reclass) +
   tm_raster()
-
-
-
-making change
-
-
 ```
 

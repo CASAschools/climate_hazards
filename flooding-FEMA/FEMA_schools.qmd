@@ -46,9 +46,9 @@ schools_high <- FEMA_state %>%
 schools_high <- schools_high %>% filter(flood_risk=="High Risk")
 
 #unionize
-schools_high <- st_union(schools_high)
+#schools_high <- st_union(schools_high)
 
-st_write(schools_high, "/capstone/casaschools/fema-data/intermediate_layers/fema_high_union.shp")
+#st_write(schools_high, "/capstone/casaschools/fema-data/intermediate_layers/fema_high_union.shp")
 
 #clip school buffers to flood intersections
 FEMA_schools <- st_intersection(schools, schools_high)
@@ -79,4 +79,33 @@ join_test <- left_join(schools %>% as.data.frame(),
   mutate(FEMA_area = replace_na(FEMA_area, 0)) %>% # replace NAs with 0s
   mutate(FEMA_percent = (FEMA_area / area) * 100) %>% # calculate sea level rise inundation percentage
   st_sf(sf_column_name = "geometry.x")
+```
+
+### testing
+
+```{r}
+fema_high_union <- st_read("/capstone/casaschools/fema-data/intermediate_layers/fema_high_union.shp", quiet = TRUE)
+
+plot(fema_high_union)
+
+fema_simple <- st_simplify(fema_high_union)
+
+
+# selecting only necessary columns
+fema_sub <- FEMA_state %>% 
+  select(SHAPE, FLD_ZONE) %>% 
+  st_as_sf()
+
+# union
+fema_test <- FEMA_state %>% 
+  mutate(flood_risk = ifelse(str_detect(FLD_ZONE, "A"), "High Risk", NA))
+
+# high risk subset
+fema_test <- fema_test %>% filter(flood_risk=="High Risk") %>% 
+  select(SHAPE, FLD_ZONE)
+
+# 
+fema_union <- fema_test %>%
+  group_by(FLD_ZONE) %>%
+  summarize(geometry = st_union(SHAPE), .groups = 'drop')
 ```
