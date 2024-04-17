@@ -1,0 +1,105 @@
+This quarto doc will walk through the process of mapping flooding for each school area.
+
+```{r}
+library(tidyverse)
+library(sf)
+library(terra)
+library(ggplot2)
+library(tmap)
+library(RColorBrewer)
+```
+
+
+```{r}
+# read in FEMA data for entire state
+FEMA_state <- st_read("/capstone/casaschools/fema-data/NFHL_06_20240401/NFHL_06_20240401.gdb",
+                      layer = "S_FLD_HAZ_AR",
+                      quiet = TRUE)
+
+# read in california schools data
+schools <- st_read("/capstone/casaschools/schools_data/schools_buffer/",
+                        quiet = TRUE)
+```
+
+We will map FEMA flood hazard on top of school buffer areas, showing high and moderate to low flood hazard areas. We will select and consolidate areas based on FEMA flood hazard categories. From the FEMA flooding documentation, a number of different categories of flood zone fall into the broader categories of high and moderate to low. These smaller classifications present in our subset of the national data (which covers California) are:
+
+High Risk:
+A, AE, A99, AH, A0, VE, V
+
+Moderate to Low:
+X
+
+Areas to be removed:
+AREA NOT INCLUDED, D (possible but undetermined), OPEN WATER
+
+We decided to group Moderate and Low together because the FEMA documentation lists category X in both. For legibility, we wanted to include only relevant data, so we removed polygons that don't refer to any risk category. Zone D refers to areas where no flood risk analysis has been conducted.
+
+```{r}
+# explore FEMA data, find unique categories of flood zones in our data
+unique(FEMA_state$FLD_ZONE)
+
+# group smaller categories together and assign "High" or "Moderate to Low" risk to them
+FEMA_reclass <- FEMA_state %>%
+  mutate(flood_risk = ifelse(str_detect(FLD_ZONE, "A") | str_detect(FLD_ZONE, "V"), "high",
+                       ifelse(str_detect(FLD_ZONE, "X"),"moderate to low",
+                              "undetermined")))
+
+## test that it worked
+# the number of rows containing "A" and "V" for flood zone should equal the number of high risk polygons
+nrow(filter(FEMA_state, str_detect(FLD_ZONE, "A") | str_detect(FLD_ZONE, "V"))) == nrow(filter(FEMA_reclass, flood_risk == "high"))
+
+#see how many rows there are in high risk areas
+nrow(filter(FEMA_reclass, flood_risk == "high"))
+
+# the number of rows containing "X" for flood zone should equal the number of moderate to low risk polygons
+nrow(filter(FEMA_state, str_detect(FLD_ZONE, "X"))) == nrow(filter(FEMA_reclass, flood_risk == "moderate to low"))
+
+#see how many rows there are in moderate to low risk areas
+nrow(filter(FEMA_reclass, flood_risk == "moderate to low"))
+
+# see how many are undetermined
+nrow(filter(FEMA_reclass, flood_risk == "undetermined"))
+
+# take a look at total number of rows in FEMA_reclass
+dim(FEMA_reclass)
+
+#
+```
+
+We can see through our tests that our reclassifications worked. Now, we need to drop rows where flood risk is "undetermined", representing areas with irrelevant information.
+
+```{r}
+# drop polygons that are undetermined
+FEMA_reclass <- FEMA_reclass %>% 
+  filter(flood_risk != "undetermined")
+
+#nrow(FEMA_reclass)
+```
+
+It's tmap time! 
+
+```{r}
+# make sure the crs are the same
+FEMA_reclass <- st_transform(FEMA_reclass, st_crs(schools))
+
+# pick a school
+alameda_high <- schools %>% 
+  filter(SchoolName == "Alameda High")
+
+# grab the flooding polgons that intersect with that school area
+alameda_flood <- FEMA_reclass[alameda_high, ]
+
+# plot it
+tmap_mode("view")
+
+tm_shape(alameda_flood) +
+  tm_polygons(fill = "flood_risk",
+              border.col = NA) +
+  tm_shape(alameda_high) +
+  tm_polygons(alpha = .5)
+
+```
+
+
+
+
