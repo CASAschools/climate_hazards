@@ -1,0 +1,11 @@
+
+
+```{r}
+# Load the libraries needed for the analysis
+library(tidyverse)
+library(sf)
+library(terra)
+library(ggplot2)
+library(tmap)
+```
+

@@ -18,8 +18,10 @@ library(RColorBrewer)
 ```
 
 ```{r}
-#read in FEMA data for entire state
-FEMA_state <- st_read("/capstone/casaschools/fema-data/NFHL_06_20240401/NFHL_06_20240401.gdb", layer = "S_FLD_HAZ_AR")
+# read in FEMA data for entire state
+FEMA_state <- st_read("/capstone/casaschools/fema-data/NFHL_06_20240401/NFHL_06_20240401.gdb",
+                      layer = "S_FLD_HAZ_AR",
+                      quiet = TRUE)
 ```
 
 ```{r}
