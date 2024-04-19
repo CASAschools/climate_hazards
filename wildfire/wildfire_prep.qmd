@@ -7,7 +7,7 @@ library(terra)
 
 ```{r}
 # read in wildfire data
-#whp_us <- rast("/capstone/casaschools/wildfire/raw_data/whp2023_cls_conus.tif")
+whp_us <- rast("/capstone/casaschools/wildfire/raw_data/whp2023_cls_conus.tif")
 
 whp_ca <- rast("/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
 
@@ -40,7 +40,7 @@ summary(whp_us)
 # crop to the extent of the California boundary
 #whp_ca <- crop(whp_us, ca_boundary, mask = TRUE, touches = FALSE)
 
-whp_ca <- crop(whp_us, ca_boundary, mask = TRUE)
+whp_ca <- crop(whp_us, ca_boundary, mask = TRUE, touches = TRUE)
 
 whp_ca <- round(whp_ca)
 
@@ -161,8 +161,9 @@ whp_schools <- whp_schools %>%
   mutate(whp = round(whp, digits = 0),
          whp = ifelse(whp == 0, 1, whp))
 
-# replace 0s with 1s
-whp_schools <- ifelse(whp_schools$whp == 0, 1, whp_schools$whp)
+# view the min and max
+min(whp_schools$whp)
+max(whp_schools$whp)
 ```
 
 
@@ -176,5 +177,23 @@ tm_shape(whp_ca) +
 
 tm_shape(whp_reclass) +
   tm_raster()
+```
+
+### testing assumptions
+
+```{r}
+## find the number of cells that become fractional after cropping to California
+# total number of cells
+# this tells us 
+whp_test <- whp_ca_round - whp_ca
+
+# find how many might have been changed to a different score
+selected_cells <- (whp_test < -0.499) | (whp_test > 0.499)
+
+plot(selected_cells)
+
+true_count = sum(values(selected_cells), na.rm = TRUE)
+
+## find the number of cells that changed value that overlap with school buffers
 ```
 
