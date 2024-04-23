@@ -89,13 +89,16 @@ alameda_high <- schools %>%
 # grab the flooding polgons that intersect with that school area
 alameda_flood <- FEMA_reclass[alameda_high, ]
 
+#intersect flooding polygons so only the extent within school area is shown
+alameda_high_intersected <- st_intersection(alameda_high, alameda_flood)
+
 # plot it
 tmap_mode("view")
 
 tm_shape(alameda_flood) +
   tm_polygons(fill = "flood_risk",
               border.col = NA) +
-  tm_shape(alameda_high) +
+  tm_shape(alameda_high_intersected) + #hm it still shows side polygons
   tm_polygons(alpha = .5)
 
 ```
