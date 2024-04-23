@@ -1,7 +1,7 @@
 ---
 title: "Accessing Extreme Precipitation Days for all Schools"
 format: html
-editor: "CASAschools Team"
+author: "CASAschools Team"
 ---
 
 ```{r}
@@ -11,6 +11,7 @@ library(tidyr)
 library(sf)
 library(lubridate)
 library(caladaptr)
+library(units)
 ```
 
 ```{r}
@@ -23,6 +24,7 @@ school_points <- st_read("/capstone/casaschools/schools_data/California_Schools_
 # Filter to schools are active and remove unnecessary columns
 school_points <- school_points %>% filter(Status == "Active") %>% 
   select(c(SCode))
+
 ```
 
 
@@ -66,8 +68,8 @@ locaschl_et_cap <- ca_loc_sf(loc = loca_ctr_sf, idfld = "id") %>%
 locaschl_et_cap %>% ca_preflight()
 
 #Next, we fetch the data. Because this is still a lot of locations, we’ll use ca_getvals_db() to save it in a database:
-data_dir_precip <- tools::R_user_dir("caladaptr_pr", which = "data")
-schools_dir_precip <- file.path(data_dir_precip, "schools") %>% normalizePath(mustWork = FALSE)
+data_dir_precip <- tools::R_user_dir("pr", which = "data")
+schools_dir_precip <- file.path(data_dir_precip, "schools_pr") %>% normalizePath(mustWork = FALSE)
 if (!file.exists(schools_dir_precip)) dir.create(schools_dir_precip, recursive = TRUE)
 
 ## Define a new SQLite file name
@@ -78,6 +80,7 @@ locaschl_fn <- file.path(schools_dir_precip, "loca_schl.sqlite") %>% normalizePa
 locaschl_et_rtbl <- locaschl_et_cap %>%
   ca_getvals_db(db_fn = locaschl_fn, db_tbl = "locaschl_et", new_recs_only = TRUE, quiet = TRUE)
 
+
 head(locaschl_et_rtbl)
 
 
@@ -86,42 +89,43 @@ head(locaschl_et_rtbl)
 locaschl_et_rtbl_1 <- locaschl_et_rtbl %>% 
   mutate(month = lubridate::month(dt),
          year = lubridate::year(dt),
-         val = as.integer(val))
+         val = as.numeric(val))
 
 # Set threshold determined in 'caladapt_precip_r.qmd' and calculate days over
 locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
-  mutate(threshold = ifelse(val > 18.671, 1, 0)) %>%
-  # Find total number of days by month and year
-  group_by(id, month, year) %>%
-  summarise(count = sum(threshold))
-
-# View results
-head(locaschl_et_rtbl_1)
-
-# Find average monthly yearly days above threshold for 4 GCM's
-locaschl_et_rtbl_2 <- locaschl_et_rtbl_1 %>% 
-  mutate(avergae = count/4)
+   mutate(threshold = ifelse(val > 0.000216, 1, 0)) %>%
+   # Find total number of days by month and year
+   group_by(id, month, year) %>%
+   summarise(count = sum(threshold))
+# 
+# # View results
+# head(locaschl_et_rtbl_1)
+# 
+# # Find average monthly yearly days above threshold for 4 GCM's
+ locaschl_et_rtbl_2 <- locaschl_et_rtbl_1 %>% 
+   mutate(average = count/4)
 
 # Rejoin with school points + LOCA id
-ca_schools_et_sf <- ca_schools_loca_sf %>% 
-  left_join(locaschl_et_rtbl_2, by = "id", copy = TRUE) 
+ ca_schools_et_sf <- ca_schools_loca_sf %>%  
+   left_join(locaschl_et_rtbl_2, by = "id", copy = TRUE) 
 
-head(ca_schools_et_sf)
+ head(ca_schools_et_sf)
+
+ # Find yearly extreme precipitation
+ ca_schools_et_year <- ca_schools_et_sf %>% 
+   group_by(SCode, year) %>% 
+   summarise(total = sum(average))
+#   
+ # Find sum total of extreme precipitation days across 1,0008 schools from 2035-2064
+ ca_schools <- ca_schools_et_year %>% 
+   group_by(SCode) %>% 
+   summarise(total_35_64 = sum(total)) %>% 
+   mutate(total_35_64 = round(total_35_64,digits = 0))
+ 
+ # Export total extreme precipitation days per year
+write.csv(ca_schools, "/capstone/casaschools/output_data/35_65_rcp8_day_totals_precip.csv")
+
+write.csv(ca_schools, "output_data/35_65_rcp8_day_totals_precip.csv")
 
 
-# Find yearly extreme precipitation
-ca_schools_et_year <- ca_schools_et_sf %>% 
-  group_by(SCode, year) %>% 
-  summarise(total = sum(avergae))
-  
-# Find sum total of extreme precipitation days across 1,0008 schools from 2035-2064
-ca_schools <- ca_schools_et_year %>% 
-  group_by(SCode) %>% 
-  summarise(total_35_64 = sum(total)) %>% 
-  mutate(total_35_64 = round(total_35_64,digits = 0))
-
-# Export file
-write.csv(ca_schools, "/capstone/casaschools/output_data/ca_schools_35_64_precip.csv")
-
-#write.csv(ca_schools, "/github/climate_hazards/output_data/ca_schools_35_64_precip.csv")
 ```
