@@ -124,7 +124,8 @@ tm_shape(folsom_lake_high_intersected) +
   tm_polygons(fill = "flood_risk",
               title = "Flood Risk",
               labels = c("High", "Moderate to Low", "Undetermined"),
-              palette = rev(brewer.pal(n = 4, name = "Blues")), style = "pretty") +
+              palette = rev(brewer.pal(n = 4, name = "Blues")), style = "pretty",
+              alpha = .5) +
   tm_shape(folsom_lake_high_flood, alpha = .2) + 
   tm_polygons(fill = "flood_risk", alpha = .2, legend.show=FALSE, 
               palette = rev(brewer.pal(n = 4, name = "Blues")), style = "pretty")
