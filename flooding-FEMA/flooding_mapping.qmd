@@ -70,8 +70,8 @@ We can see through our tests that our reclassifications worked. Now, we need to 
 
 ```{r}
 # drop polygons that are undetermined
-FEMA_reclass <- FEMA_reclass %>% 
-  filter(flood_risk != "undetermined")
+# FEMA_reclass <- FEMA_reclass %>% 
+#   filter(flood_risk != "undetermined")
 
 #nrow(FEMA_reclass)
 ```
@@ -95,11 +95,11 @@ alameda_high_intersected <- st_intersection(alameda_high, alameda_flood)
 # plot it
 tmap_mode("view")
 
-tm_shape(alameda_flood) +
+tm_shape(alameda_high_intersected) +
   tm_polygons(fill = "flood_risk",
               border.col = NA) +
-  tm_shape(alameda_high_intersected) + #hm it still shows side polygons
-  tm_polygons(alpha = .5)
+  tm_shape(alameda_flood) + #hm it still shows side polygons
+  tm_polygons(fill = "flood_risk", alpha = .5)
 
 ```
 
