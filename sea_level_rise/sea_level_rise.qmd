@@ -1,22 +1,22 @@
 ```{r, message = FALSE, warning = FALSE}
 library(sf)
 library(tidyverse)
-library(sf)
-library(here)
 library(tmap)
 ```
 
 
 ### Calculating sea level rise with information for just one county
 
-Data preparation. Here, we are reading in the shapefile for projected extent of indundation in Alameda County with .7m of sea level rise and a 100 year storm scenario.
+Data preparation. We are using data from the USGS Coastal Storm Modeling system, or CoSMoS. The data we downloaded are polygons describing the extent of coastal flooding under a .8 ft sea level rise scenario and a 100 year coastal storm. The data covers coastal areas from San Diego County north to Point Arena in Mendocino County, but lacks coverage of the coastal areas north of there. It also covers the San Francisco bay inner coastline. The values are given in centimeters, with .8 feet equaling 25 cm.
 
 ```{r}
-# read in sea level rise polygon
-alameda_slr <- st_read(here("data", "slr", "sfb_fldhazd_slr100_w100.shp"))
+# read in sea level rise polygons
+slr_la <- st_read("/capstone/casaschools/sea_level_rise/raw_data/cosmos/slr_la",
+                  quiet = TRUE)
 
 # read in CA school districts
-ca_schools <- st_read(here("data", "schools", "California_School_District_Areas_2022-23.shp"))
+ca_schools <- st_read("/capstone/casaschools/schools_data/schools_buffer_clip",
+                      quiet = TRUE)
 
 # filter to Alameda County districts
 alameda_districts <- ca_schools %>% 
