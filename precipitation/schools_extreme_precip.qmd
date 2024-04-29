@@ -1,5 +1,5 @@
 ---
-title: "Accessing Extreme Precipitation Days for all Schools"
+title: "Accessing Extreme Precipitation Days for all Schools from 2034-64"
 format: html
 author: "CASAschools Team"
 ---
@@ -19,14 +19,12 @@ library(units)
 school_points <- st_read("/capstone/casaschools/schools_data/California_Schools_2022-23/California_Schools_2022-23.shp")
 ```
 
-
 ```{r}
 # Filter to schools are active and remove unnecessary columns
 school_points <- school_points %>% filter(Status == "Active") %>% 
-  select(c(SCode))
+  select(c(CDSCode))
 
 ```
-
 
 ```{r}
 # Import LOCA grid 
@@ -41,8 +39,9 @@ school_points <- st_transform(school_points, crs = st_crs(locagrid_sf))
 # Spatially join points and grid
 ca_schools_loca_sf <- school_points %>% st_join(locagrid_sf) 
 ca_schools_loca_sf %>% st_drop_geometry()
+```
 
-
+```{r}
 # Unique ID values
 # we only have to query 1,619 school points
 loca_ids_schools <- ca_schools_loca_sf %>% pull(id) %>% unique()
@@ -67,24 +66,28 @@ locaschl_et_cap <- ca_loc_sf(loc = loca_ctr_sf, idfld = "id") %>%
 # Check if request has no erros
 locaschl_et_cap %>% ca_preflight()
 
+head(locaschl_et_cap)
+```
+
+```{r}
 #Next, we fetch the data. Because this is still a lot of locations, we’ll use ca_getvals_db() to save it in a database:
-data_dir_precip <- tools::R_user_dir("pr", which = "data")
-schools_dir_precip <- file.path(data_dir_precip, "schools_pr") %>% normalizePath(mustWork = FALSE)
-if (!file.exists(schools_dir_precip)) dir.create(schools_dir_precip, recursive = TRUE)
+data_dir_precip_mid_85 <- tools::R_user_dir("pr_mid_85", which = "data")
+schools_dir_precip_mid_85 <- file.path(data_dir_precip_mid_85, "schools_pr_mid_85") %>% normalizePath(mustWork = FALSE)
+if (!file.exists(schools_dir_precip_mid_85)) dir.create(schools_dir_precip_mid_85, recursive = TRUE)
 
 ## Define a new SQLite file name
-locaschl_fn <- file.path(schools_dir_precip, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
+locaschl_fn_mid85 <- file.path(schools_dir_precip_mid_85, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
 
 
 ## Fetch data
 locaschl_et_rtbl <- locaschl_et_cap %>%
-  ca_getvals_db(db_fn = locaschl_fn, db_tbl = "locaschl_et", new_recs_only = TRUE, quiet = TRUE)
+  ca_getvals_db(db_fn = locaschl_fn_mid85, db_tbl = "locaschl_et", new_recs_only = TRUE, quiet = TRUE)
 
 
 head(locaschl_et_rtbl)
+```
 
-
-
+```{r}
 # Transform dataset 
 locaschl_et_rtbl_1 <- locaschl_et_rtbl %>% 
   mutate(month = lubridate::month(dt),
@@ -99,8 +102,10 @@ locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
    summarise(count = sum(threshold))
 # 
 # # View results
-# head(locaschl_et_rtbl_1)
-# 
+ head(locaschl_et_rtbl_1)
+```
+
+```{r}
 # # Find average monthly yearly days above threshold for 4 GCM's
  locaschl_et_rtbl_2 <- locaschl_et_rtbl_1 %>% 
    mutate(average = count/4)
@@ -110,22 +115,132 @@ locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
    left_join(locaschl_et_rtbl_2, by = "id", copy = TRUE) 
 
  head(ca_schools_et_sf)
+```
 
- # Find yearly extreme precipitation
+```{r}
+# Find yearly extreme precipitation
  ca_schools_et_year <- ca_schools_et_sf %>% 
-   group_by(SCode, year) %>% 
-   summarise(total = sum(average))
+   group_by(CDSCode, year) %>% 
+   summarise(total = sum(count))
 #   
  # Find sum total of extreme precipitation days across 1,0008 schools from 2035-2064
  ca_schools <- ca_schools_et_year %>% 
-   group_by(SCode) %>% 
+   group_by(CDSCode) %>% 
    summarise(total_35_64 = sum(total)) %>% 
    mutate(total_35_64 = round(total_35_64,digits = 0))
- 
- # Export total extreme precipitation days per year
-write.csv(ca_schools, "/capstone/casaschools/output_data/35_65_rcp8_day_totals_precip.csv")
+```
 
-write.csv(ca_schools, "output_data/35_65_rcp8_day_totals_precip.csv")
+```{r}
+# Find yearly extreme precipitation
+ ca_schools_et_year <- ca_schools_et_sf %>% 
+   group_by(CDSCode, year) %>% 
+   summarise(total = sum(count))
+#   
+ # Find sum total of extreme precipitation days across 1,0008 schools from 2035-2064
+ ca_schools <- ca_schools_et_year %>% 
+   group_by(CDSCode) %>% 
+   summarise(total_35_64 = sum(total)) %>% 
+   mutate(total_35_64 = round(total_35_64,digits = 0))
+```
+
+```{r}
+# Export total extreme precipitation days per year
+write.csv(ca_schools, "/capstone/casaschools/precipitation/midcentury8.5_precip_sum.csv")
+
+write.csv(ca_schools, "precipitation/midcentury8.5_precip_sum.csv")
+
+write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/midcentury8.5_precip_yeartotals.csv")
+
+write.csv(ca_schools_et_year, "precipitation/midcentury8.5_precip_yeartotals.csv")
+```
+
+## Current Century 06 - 34
+
+```{r}
+# API request 
+locaschl_et_cap <- ca_loc_sf(loc = loca_ctr_sf, idfld = "id") %>%
+  # CanESM2, CNRM-CM5, HadGEM2-ES, MIROC5
+  ca_gcm(gcms[1:4]) %>%
+  ca_scenario(c("rcp85")) %>%
+  ca_cvar("pr") %>%
+  ca_period("day") %>%
+  # Mid Century 
+  ca_years(start = 2006, end = 2034)
+
+# Check if request has no erros
+locaschl_et_cap %>% ca_preflight()
+
+head(locaschl_et_cap)
+```
+
+```{r}
+#Next, we fetch the data. Because this is still a lot of locations, we’ll use ca_getvals_db() to save it in a database:
+data_dir_precip_cur_85 <- tools::R_user_dir("pr_cur_85", which = "data")
+schools_dir_precip_cur_85 <- file.path(data_dir_precip_cur_85, "schools_pr_cur_85") %>% normalizePath(mustWork = FALSE)
+if (!file.exists(schools_dir_precip_cur_85)) dir.create(schools_dir_precip_cur_85, recursive = TRUE)
+
+## Define a new SQLite file name
+locaschl_fn_cur85 <- file.path(schools_dir_precip_cur_85, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
 
 
+## Fetch data
+locaschl_et_rtbl <- locaschl_et_cap %>%
+  ca_getvals_db(db_fn = locaschl_fn_cur85, db_tbl = "locaschl_et", new_recs_only = TRUE, quiet = TRUE)
+
+
+head(locaschl_et_rtbl)
+```
+
+```{r}
+# Transform dataset 
+locaschl_et_rtbl_1 <- locaschl_et_rtbl %>% 
+  mutate(month = lubridate::month(dt),
+         year = lubridate::year(dt),
+         val = as.numeric(val))
+
+# Set threshold determined in 'caladapt_precip_r.qmd' and calculate days over
+locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
+   mutate(threshold = ifelse(val > 0.000216, 1, 0)) %>%
+   # Find total number of days by month and year
+   group_by(id, month, year) %>%
+   summarise(count = sum(threshold))
+# 
+# # View results
+ head(locaschl_et_rtbl_1)
+```
+
+```{r}
+# # Find average monthly yearly days above threshold for 4 GCM's
+ locaschl_et_rtbl_2 <- locaschl_et_rtbl_1 %>% 
+   mutate(average = count/4)
+
+# Rejoin with school points + LOCA id
+ ca_schools_et_sf <- ca_schools_loca_sf %>%  
+   left_join(locaschl_et_rtbl_2, by = "id", copy = TRUE) 
+
+ head(ca_schools_et_sf)
+```
+
+```{r}
+# Find yearly extreme precipitation
+ ca_schools_et_year <- ca_schools_et_sf %>% 
+   group_by(CDSCode, year) %>% 
+   summarise(total = sum(count))
+#   
+ # Find sum total of extreme precipitation days across 1,0008 schools from 2035-2064
+ ca_schools <- ca_schools_et_year %>% 
+   group_by(CDSCode) %>% 
+   summarise(total_35_64 = sum(total)) %>% 
+   mutate(total_35_64 = round(total_35_64,digits = 0))
+```
+
+```{r}
+# Export total extreme precipitation days per year
+write.csv(ca_schools, "/capstone/casaschools/precipitation/currentcent8.5_precip_sum.csv")
+
+write.csv(ca_schools, "precipitation/currentcent8.5_precip_sum.csv")
+
+write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/currentcent8.5_precip_yeartotals.csv")
+
+write.csv(ca_schools_et_year, "precipitation/currentcent8.5_precip_yeartotals.csv")
 ```
