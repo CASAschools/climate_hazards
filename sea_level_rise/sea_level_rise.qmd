@@ -23,10 +23,6 @@ ca_schools <- st_read("/capstone/casaschools/schools_data/schools_buffer_clip",
 # filter to Los Angeles County schools
 la_schools <- ca_schools %>% 
   filter(CountyName %in% "Los Angeles")
-
-plot(la_schools)
-
-plot(cf_la)
 ```
 
 Next, we need to find the percentage of area of each school polygon that is inundated with this scenario. We need to ensure that the layers are on the same CRS so that we can perform spatial operations on them. We'll convert the coastal flooding layer to be on the same coordinate reference system as the schools layer
@@ -111,12 +107,64 @@ la_schools[cf_la, ]
 
 ## Scaling up the process for all counties
 
-Beginning with just two counties, Contra Costa and Marin. The data is downloaded county by county, and the names of the files are all the same, so we need to rename the files
+We have 14 different shapefiles for sea level rise. To read them and combine them into one sf object, we need to write a function. Not all of the shapefiles are on the same crs, and we want all of them to be on the same crs as the ca schools layer. So, we're just going to convert them all to the crs of the schools buffers. Each of the layers also has different amounts of columns, so we're only going to select the geometry column in order to be able to combine all of the shapefiles into one. The function reads in a shapefile, converts the coordinate reference system, and then drops all columns except for the geometry column. Then, we use lapply to apply the function to each shapefile in our list, returning a list. Then, we merge all of the shapefiles into one.
 
 ```{r}
 # read in sea level rise polygons
-cc_slr <- st_read(here("data", "slr_contra_costa", "cc.shp"))
+ca_cf_files <- list.files("/capstone/casaschools/coastal_flooding/raw_data/cosmos/all", pattern = "*.shp", full.names = TRUE)
 
+# read in files and transform to the crs of the california schools buffers
+read_transform_crs <- function(ca_cf_files, target_crs = st_crs(ca_schools)) {
+  
+  # read in shapefile
+  shapefile <- st_read(ca_cf_files, quiet = TRUE)
+  
+  # convert crs of the shapefile to the target crs
+  shapefile <- st_transform(shapefile, crs = target_crs)
+  
+  # extract only the geometry columns
+  geometry <- st_geometry(shapefile)
+  
+  # return shapefile as sf object
+  return(st_sf(geometry = geometry))
+}
+
+# apply the function to each shapefile
+cf_shapefiles <- lapply(ca_cf_files, read_transform_crs)
+
+# merge all shapefiles into one sf object
+ca_cf <- do.call(rbind, cf_shapefiles)
 ```
 
+
+```{r}
+# find the intersections
+ca_schools_cf <- st_intersection(ca_schools, ca_cf)
+
+# find the area of each intersection polygon
+ca_schools_cf$slr_area <- st_area(ca_schools_cf)
+
+# also find the area of each original district polygon to compare
+ca_schools$area <- st_area(ca_schools)
+
+## join the two together
+# select only necessary columns to join
+ca_schools_cf <- ca_schools_cf %>% 
+  select(CDSCode, slr_area)
+
+# group by CDSCode (unique school id) and sum all of the sea level rise areas
+ca_schools_cf <- ca_schools_cf %>% 
+  group_by(CDSCode) %>% 
+  summarise(slr_area = sum(slr_area))
+
+# conduct a join, converting the sf objects into dataframes
+cf_ca_join <- full_join(ca_schools %>% as.data.frame(), 
+                     ca_schools_cf %>% as.data.frame(), 
+                     by = "CDSCode", keep = FALSE) %>% 
+  mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
+         slr_area = as.numeric(slr_area)) %>% 
+  mutate(slr_area = replace_na(slr_area, 0)) %>% # replace NAs with 0s
+  mutate(slr_percent = (slr_area / area) * 100) %>% # calculate sea level rise inundation percentage
+  st_sf(sf_column_name = "geometry.x") # convert back to an sf object
+```
 
