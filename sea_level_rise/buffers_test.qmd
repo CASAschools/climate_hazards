@@ -1,7 +1,6 @@
 ```{r, warning = FALSE, message = FALSE}
 library(sf)
 library(tidyverse)
-library(here)
 library(tmap)
 library(terra)
 ```
@@ -150,5 +149,40 @@ tm_shape(ca_boundary) +
 ```
 
 
+The SLR raster represents a .5m sea level rise scenario and a near-100 year storm event. We want to move towards a .4 ft sea level rise scenario, which represents a 2030 intermediate scenario. To get to that, we are going to subtract .378 meters from the sea level rise raster, which is the difference between .5m and .4 feet. Any negative values should indicate areas that should be removed, or areas that wouldn't be inundated under a .4 ft SLR scenario.
 
+```{r}
+# resample the sfbay and delta rasters to be 50m
+slr_delta <- resample(slr_delta, slr_coast, method = "bilinear")
+  
+slr_sfbay <- resample(slr_sfbay, slr_coast, method = "bilinear")
+
+# create a raster mosaic. "fun" determines what to do with overlaps. In this case, we'll take the mean of overlapping cells
+slr_ca <- mosaic(slr_coast, slr_delta, slr_sfbay, fun = "mean")
+
+# reproject the raster to be on the same crs as our schools layer
+slr_ca <- project(slr_ca, ca_schools)
+
+# subtract the value from our sea level rise raster to get at our desired sea level rise scenario
+(slr_ca_ft <- slr_ca - .378)
+
+# remove negative cells
+slr_ca_ft[slr_ca_ft < 0] <- NA
+
+# convert raster into polygons and convert into an sf object
+slr_poly <- as.polygons(slr_ca_ft, round = TRUE, aggregate = TRUE, values = TRUE, extent = FALSE, digits = 0) %>% 
+  st_as_sf()
+
+# dissolve the boundaries of our vector layer so we have one large shape
+slr_poly_union <- st_union(slr_poly)
+
+# find the intersections
+slr_districts <- st_intersection(ca_schools, slr_schools_test)
+
+# find the area of each intersection polygon
+slr_districts$slr_area <- st_area(slr_districts)
+
+# also find the area of each original district polygon to compare
+ca_schools$area <- st_area(ca_schools)
+```
 

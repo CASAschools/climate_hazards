@@ -15,9 +15,9 @@ library(RColorBrewer)
 
 
 ```{r}
-FEMA_state <- st_read("/capstone/casaschools/fema-data/NFHL_06_20240401/NFHL_06_20240401.gdb")
+FEMA_state <- st_read("/capstone/casaschools/flooding/NFHL_06_20240401/NFHL_06_20240401.gdb")
 
-#st_layers("/capstone/casaschools/fema-data/NFHL_06_20240307/NFHL_06_20240307.gdb")
+#st_layers("/capstone/casaschools/flooding/NFHL_06_20240307/NFHL_06_20240307.gdb")
 ```
 
 ```{r}
