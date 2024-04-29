@@ -12,7 +12,7 @@ library(RColorBrewer)
 
 ```{r}
 # read in FEMA data for entire state
-FEMA_state <- st_read("/capstone/casaschools/fema-data/NFHL_06_20240401/NFHL_06_20240401.gdb",
+FEMA_state <- st_read("/capstone/casaschools/flooding/NFHL_06_20240401/NFHL_06_20240401.gdb",
                       layer = "S_FLD_HAZ_AR",
                       quiet = TRUE)
 
@@ -70,8 +70,8 @@ We can see through our tests that our reclassifications worked. Now, we need to 
 
 ```{r}
 # drop polygons that are undetermined
-FEMA_reclass <- FEMA_reclass %>% 
-  filter(flood_risk != "undetermined")
+# FEMA_reclass <- FEMA_reclass %>% 
+#   filter(flood_risk != "undetermined")
 
 #nrow(FEMA_reclass)
 ```
@@ -95,14 +95,42 @@ alameda_high_intersected <- st_intersection(alameda_high, alameda_flood)
 # plot it
 tmap_mode("view")
 
-tm_shape(alameda_flood) +
+tm_shape(alameda_high_intersected) +
   tm_polygons(fill = "flood_risk",
               border.col = NA) +
-  tm_shape(alameda_high_intersected) + #hm it still shows side polygons
-  tm_polygons(alpha = .5)
+  tm_shape(alameda_flood) + 
+  tm_polygons(fill = "flood_risk", alpha = .2, legend.show=FALSE) 
+
 
 ```
 
+# try this with a high risk flood school in sacremento, "Folsom Lake High"
+
+```{r}
+# pick a school
+folsom_lake_high <- schools %>% 
+  filter(SchoolName == "Folsom Lake High")
+
+# grab the flooding polgons that intersect with that school area
+folsom_lake_high_flood <- FEMA_reclass[folsom_lake_high, ]
+
+#intersect flooding polygons so only the extent within school area is shown
+folsom_lake_high_intersected <- st_intersection(folsom_lake_high, folsom_lake_high_flood)
+
+# plot it
+tmap_mode("view")
+
+tm_shape(folsom_lake_high_intersected) +
+  tm_polygons(fill = "flood_risk",
+              title = "Flood Risk",
+              labels = c("High", "Moderate to Low", "Undetermined"),
+              palette = rev(brewer.pal(n = 4, name = "Blues")), style = "pretty",
+              alpha = .5) +
+  tm_shape(folsom_lake_high_flood, alpha = .2) + 
+  tm_polygons(fill = "flood_risk", alpha = .2, legend.show=FALSE, 
+              palette = rev(brewer.pal(n = 4, name = "Blues")), style = "pretty")
+  
+```
 
 
 
