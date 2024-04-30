@@ -1,0 +1,62 @@
+```{r, message = FALSE}
+library(sf)
+library(tidyverse)
+library(tmap)
+library(terra)
+```
+
+Mapping wildfire for school districts. The plan to map is to overlay school buffers areas on top of the wildfire raster data. We should use the buffers that are the complete buffers for mapping so that users can see information about the school's average wildfire hazard potential score.
+
+
+```{r}
+# read in ca wildfire data
+whp_ca <- rast("/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
+
+# read in reclassified whp data
+whp_reclass <- rast("/capstone/casaschools/wildfire/intermediate_layers/whp_reclass.tif")
+
+# read in school buffers clipped
+schools_buffers_clip <- st_read("/capstone/casaschools/schools_data/schools_buffer_clip/schools_buffer_clip.shp",
+                                quiet = TRUE)
+
+# schools buffers
+schools_buffers <- st_read("/capstone/casaschools/schools_data/schools_buffer/schools_points_buffer.shp",
+                           quiet = TRUE)
+```
+
+Mapping will happen school by school.
+- should the raster be reclassified as categorical? Yes.
+
+```{r}
+## mapping
+tmap_mode("view")
+
+# filter for one school
+dp <- schools_buffers %>% 
+  filter(SchoolName == "Dos Pueblos Senior High")
+
+# create the school point as the centroid of the buffer
+dp_point <- dp %>% 
+  st_centroid()
+
+# select the wildfire hazard potential cells that overlap
+whp_school <- crop(whp_reclass, dp)
+
+# define custom color palette and labels
+palette = c("white", "#fee391", "#fec44f", "#fe9929", "#d95f0e", "#993404")
+labels <- c("non-burnable", "very low", "low", "moderate", "high", "very high")
+
+# map it
+tm_shape(whp_school) +
+  tm_raster(title = "Wildfire Hazard Potential",
+            breaks = 0:6, 
+            labels = labels,
+            palette = palette,
+            alpha = .5) +
+  tm_shape(dp) +
+  tm_borders(alpha = .3) +
+  # map the school point
+  tm_shape(dp_point) +
+  tm_dots(size = .5, fill = "red", shape = 19)
+```
+
