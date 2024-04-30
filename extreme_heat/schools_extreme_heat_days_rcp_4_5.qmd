@@ -1,5 +1,5 @@
 ---
-title: "Accessing Extreme Heat Days for all Schools"
+title: "Accessing Extreme Heat Days for all Schools at RCP 4.5"
 format: html
 author: "CASAschools Team"
 ---
@@ -23,10 +23,110 @@ There is one inactive school in the 2022-2023 school year that needs to be remov
 ```{r}
 # Filter to schools are active and remove unnecessary columns
 school_points <- school_points %>% filter(Status == "Active") %>% 
-  select(c(SCode))
+  select(c(CDSCode))
 ```
 
 Due to the large size of the data the years of interest are divided up into sections
+
+### RCP 4.5 MID CENTURY 2000 - 2006
+
+
+##### NEEDS TO BE UPDATED
+```{r}
+
+# Import LOCA grid 
+locagrid_sf <- ca_locagrid_geom()
+
+# Check CRS of both data
+st_crs(school_points) == st_crs(locagrid_sf)
+
+# Transform school points to LOCA CRS
+school_points <- st_transform(school_points, crs = st_crs(locagrid_sf))
+
+# Spatially join points and grid
+ca_schools_loca_sf <- school_points %>% st_join(locagrid_sf) 
+ca_schools_loca_sf %>% st_drop_geometry()
+
+
+# Unique ID values
+# we only have to query 1,619 school points
+loca_ids_schools <- ca_schools_loca_sf %>% pull(id) %>% unique()
+
+
+# Create a point layer for the 1,619 LOCA grid cells that contain schools
+loca_ctr_sf <- locagrid_sf %>%
+  filter(id %in% loca_ids_schools) %>%
+  st_centroid()
+
+
+# API request 
+locaschl_et_cap <- ca_loc_sf(loc = loca_ctr_sf, idfld = "id") %>%
+  # CanESM2, CNRM-CM5, HadGEM2-ES, MIROC5
+  ca_gcm(gcms[1:4]) %>%
+  ca_scenario(c("rcp45")) %>%
+  ca_cvar("tasmax") %>%
+  ca_period("day") %>%
+  # Mid Century 
+  ca_years(start = 2006, end = 2034)
+
+# Check if request has no erros
+locaschl_et_cap %>% ca_preflight()
+
+
+#Next, we fetch the data. Because this is still a lot of locations, we’ll use ca_getvals_db() to save it in a database:
+heat_dir_rcp45_06_34 <- tools::R_user_dir("heat_rcp4.5_2006_2034", which = "data")
+schools_dir_early <- file.path(heat_dir_rcp45_06_34, "schools") %>% normalizePath(mustWork = FALSE)
+if (!file.exists(schools_dir_early)) dir.create(schools_dir_early, recursive = TRUE)
+
+## Define a new SQLite file name
+locaschl_fn <- file.path(schools_dir_early, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
+
+
+## Fetch data
+locaschl_et_rtbl <- locaschl_et_cap %>%
+  ca_getvals_db(db_fn = locaschl_fn, db_tbl = "locaschl_et", new_recs_only = TRUE, quiet = TRUE)
+
+# Transform dataset 
+locaschl_et_rtbl_1 <- locaschl_et_rtbl %>% 
+  mutate(month = lubridate::month(dt),
+         year = lubridate::year(dt),
+         val = val)
+
+
+head(locaschl_et_rtbl)
+
+# Set threshold determined in 'caladapt-r.qmd' and calculate days over
+locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
+  mutate(threshold = ifelse(val > 309.817, 1, 0)) %>%
+  # Find total number of days by month and year
+  group_by(id, month, year) %>%
+  summarise(count = sum(threshold))
+
+# Find average monthly yearly days above threshold for 4 GCM's
+locaschl_et_rtbl_2 <- locaschl_et_rtbl_1 %>% 
+  mutate(avergae = count/4)
+
+# Rejoin with school points + LOCA id
+ca_schools_et_sf <- ca_schools_loca_sf %>% 
+  left_join(locaschl_et_rtbl_2, by = "id", copy = TRUE) 
+
+# Find yearly extreme heat days
+ca_schools_et_year <- ca_schools_et_sf %>% 
+  group_by(CDSCode, year) %>% 
+  summarise(total = sum(avergae)) %>% 
+  st_drop_geometry()
+
+length(unique(ca_schools_et_year$SCode))
+
+write.csv(ca_schools_et_year, "/capstone/casaschools/extreme_heat/rcp4.5_2006_2034.csv")
+
+
+
+```
+
+
+
+
 
 ### RCP 4.5 MID CENTURY 2006 - 2034
 
@@ -72,12 +172,12 @@ locaschl_et_cap %>% ca_preflight()
 
 
 #Next, we fetch the data. Because this is still a lot of locations, we’ll use ca_getvals_db() to save it in a database:
-data_dir <- tools::R_user_dir("caladaptr_4.5_early", which = "data")
-schools_dir <- file.path(data_dir, "schools") %>% normalizePath(mustWork = FALSE)
-if (!file.exists(schools_dir)) dir.create(schools_dir, recursive = TRUE)
+heat_dir_rcp45_06_34 <- tools::R_user_dir("caladaptr_4.5_early", which = "data")
+schools_dir_early <- file.path(heat_dir_rcp45_06_34, "schools") %>% normalizePath(mustWork = FALSE)
+if (!file.exists(schools_dir_early)) dir.create(schools_dir_early, recursive = TRUE)
 
 ## Define a new SQLite file name
-locaschl_fn <- file.path(schools_dir, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
+locaschl_fn <- file.path(schools_dir_early, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
 
 
 ## Fetch data
@@ -88,7 +188,7 @@ locaschl_et_rtbl <- locaschl_et_cap %>%
 locaschl_et_rtbl_1 <- locaschl_et_rtbl %>% 
   mutate(month = lubridate::month(dt),
          year = lubridate::year(dt),
-         val = as.integer(val))
+         val = val)
 
 
 head(locaschl_et_rtbl)
@@ -100,9 +200,6 @@ locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
   group_by(id, month, year) %>%
   summarise(count = sum(threshold))
 
-# View results
-head(locaschl_et_rtbl_1)
-
 # Find average monthly yearly days above threshold for 4 GCM's
 locaschl_et_rtbl_2 <- locaschl_et_rtbl_1 %>% 
   mutate(avergae = count/4)
@@ -113,8 +210,9 @@ ca_schools_et_sf <- ca_schools_loca_sf %>%
 
 # Find yearly extreme heat days
 ca_schools_et_year <- ca_schools_et_sf %>% 
-  group_by(SCode, year) %>% 
-  summarise(total = sum(avergae))
+  group_by(CDSCode, year) %>% 
+  summarise(total = sum(avergae)) %>% 
+  st_drop_geometry()
 
 length(unique(ca_schools_et_year$SCode))
 
@@ -167,12 +265,12 @@ locaschl_et_cap %>% ca_preflight()
 
 
 #Next, we fetch the data. Because this is still a lot of locations, we’ll use ca_getvals_db() to save it in a database:
-data_dir <- tools::R_user_dir("caladaptr_4.5_mid_century", which = "data")
-schools_dir <- file.path(data_dir, "schools") %>% normalizePath(mustWork = FALSE)
-if (!file.exists(schools_dir)) dir.create(schools_dir, recursive = TRUE)
+heat_dir_rcp45_35_64 <- tools::R_user_dir("heat_4.5_2035_2064", which = "data")
+heat_dir_rcp85_64 <- file.path(heat_dir_rcp45_35_64, "schools") %>% normalizePath(mustWork = FALSE)
+if (!file.exists(heat_dir_rcp85_64)) dir.create(heat_dir_rcp85_64, recursive = TRUE)
 
 ## Define a new SQLite file name
-locaschl_fn <- file.path(schools_dir, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
+locaschl_fn <- file.path(heat_dir_rcp85_64, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
 
 
 ## Fetch data
@@ -183,7 +281,7 @@ locaschl_et_rtbl <- locaschl_et_cap %>%
 locaschl_et_rtbl_1 <- locaschl_et_rtbl %>% 
   mutate(month = lubridate::month(dt),
          year = lubridate::year(dt),
-         val = as.integer(val))
+         val = (val))
 
 
 head(locaschl_et_rtbl)
@@ -196,7 +294,7 @@ locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
   summarise(count = sum(threshold))
 
 # View results
-head(locaschl_et_rtbl_1)
+#head(locaschl_et_rtbl_1)
 
 # Find average monthly yearly days above threshold for 4 GCM's
 locaschl_et_rtbl_2 <- locaschl_et_rtbl_1 %>% 
@@ -208,13 +306,50 @@ ca_schools_et_sf <- ca_schools_loca_sf %>%
 
 # Find yearly extreme heat days
 ca_schools_et_year <- ca_schools_et_sf %>% 
-  group_by(SCode, year) %>% 
-  summarise(total = sum(avergae))
+  group_by(CDSCode, year) %>% 
+  summarise(total = sum(avergae)) %>% 
+  st_drop_geometry()
 
-length(unique(ca_schools_et_year$SCode))
+#length(unique(ca_schools_et_year$SCode))
 
-write.csv(ca_schools_et_year, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/rcp4.5_2035_2064.csv")
+write.csv(ca_schools_et_year, "/capstone/casaschools/extreme_heat/rcp4.5_2035_2064.csv")
 
 ```
+
+
+
+
+
+
+
+## Join datasets
+
+```{r}
+
+options(scipen = 999)
+
+
+heat_2000_2005 <- read.csv("/capstone/casaschools/extreme_heat/heat_2000_2005.csv")
+
+
+rcp45_2006_2034 <- read.csv("/capstone/casaschools/extreme_heat/rcp4.5_2006_2034.csv")
+
+rcp45_2035_2064 <- read.csv("/capstone/casaschools/extreme_heat/rcp4.5_2035_2064.csv")
+
+
+## Combine to make rcp45 2000-2064
+heat_rcp45_2000_2064 <- rbind(heat_2000_2005, 
+                              rcp45_2006_2034, 
+                              rcp45_2035_2064)
+
+heat_rcp45_2000_2064 <- heat_rcp45_2000_2064 %>%
+  select(-X)
+
+### export csv to shinydashboard data
+write.csv(heat_rcp45_2000_2064, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp45_2000_20064.csv")
+
+```
+
+
 
 
