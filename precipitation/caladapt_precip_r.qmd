@@ -230,10 +230,10 @@ threshold <- percentile_all %>%
   summarise(percentile98_mean = mean(percentile_98))
 # 
 # 
- write.csv(threshold, "output_data/threshold_precip.csv")
+ write.csv(threshold, "precipitation/threshold_precip.csv")
 # 
  paste("Average 98th percentile threshold of yearly rainfall totals for all of California's public school districts:",
-      round(threshold$percentile98_mean,3),"in")
+      round(threshold$percentile98_mean,3),"mm")
 # 
 
 ```
