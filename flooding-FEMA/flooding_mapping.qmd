@@ -166,7 +166,7 @@ dp_sr_high_intersected <- st_intersection(dp_sr_high, dp_sr_high_flood)
 # plot it
 tmap_mode("view")
 
-tm_shape(dp_sr_high_intersected) +
+flood <- tm_shape(dp_sr_high_intersected) +
   tm_polygons(fill = "flood_risk",
               title = "Flood Risk",
               labels = c("High", "Moderate to Low", "Undetermined"),
@@ -175,6 +175,8 @@ tm_shape(dp_sr_high_intersected) +
   tm_shape(dp_sr_high_flood, alpha = 0.5) + 
   tm_polygons(fill = "flood_risk", alpha = 0.5, legend.show=FALSE, 
               palette = c("#0C46EE", "#AEDBEA", "#8DB6CD"), style = "pretty")
+
+flood
   
 ```
 ```
