@@ -1,8 +1,8 @@
 ```{r, message = FALSE}
 library(sf)
 library(tidyverse)
-library(tmap)
 library(terra)
+library(leaflet)
 ```
 
 Mapping wildfire for school districts. The plan to map is to overlay school buffers areas on top of the wildfire raster data. We should use the buffers that are the complete buffers for mapping so that users can see information about the school's average wildfire hazard potential score.
@@ -61,5 +61,48 @@ tm_shape(whp_school) +
   # add custom legend for school point and buffer area
   tm_add_legend(type = "fill", labels = "school community area", col = "black", fill = "transparent") +
   tm_add_legend(type = "fill", labels = "school point", col = "red", fill = "red", shape = 19)
+```
+
+## converting to leaflet code
+```{r}
+# define color palette and labels for wildfire hazard potential
+labels <- c("non-burnable", "very low", "low", "moderate", "high", "very high", "")
+whp_colors <- c("white", "#fee391", "#fec44f", "#fe9929", "#d95f0e", "#993404", "transparent")
+whp_palette <- colorFactor(palette = whp_colors,
+                           domain = values(whp_school),
+                           na.color = "transparent")
+
+# filter for one school
+dp <- schools_buffers %>% 
+  filter(SchoolName == "Dos Pueblos Senior High")
+
+# create the school point as the centroid of the buffer
+dp_point <- dp %>% 
+  st_centroid()
+
+# select the wildfire hazard potential cells that overlap
+whp_school <- crop(whp_reclass, dp)
+
+# data needs to be in lot/long format, or transformed to WGS 1984
+dp <- st_transform(dp, crs = 4326)
+dp_point <- st_transform(dp_point, crs = 4326)
+
+
+# leaflet map of wildfire hazard potential
+leaflet() %>% 
+  # add basemap
+  addProviderTiles(providers$Esri.WorldTopoMap) %>% 
+  # add cropped wildfire hazard potential raster
+  addRasterImage(whp_school, colors = whp_palette, opacity = .7, group = "wildfire hazard potential") %>% 
+  # add school buffer polygon
+  addPolygons(data = dp, color = "black", fill = FALSE, 
+              weight = 2, group = "school community area") %>% 
+  # add school point
+  addCircleMarkers(data = dp_point, color = "blue", stroke = FALSE, 
+                   weight = 3, radius = 5, fillOpacity = 1,
+                   group = "school point") %>% 
+  # add legend for wildfire hazard potential with custom labels
+  addLegend("bottomright", colors = whp_colors, labels = labels,
+            title = "wildfire hazard potential", opacity = 0.5)
 ```
 
