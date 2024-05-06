@@ -9,11 +9,14 @@ library(terra)
 # read in wildfire data
 whp_us <- rast("/capstone/casaschools/wildfire/raw_data/whp2023_cls_conus.tif")
 
-whp_ca <- rast("/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
-
-# read in school buffers
+# read in clipped school buffers
 ca_schools <- st_read("/capstone/casaschools/schools_data/schools_buffer_clip/schools_buffer_clip.shp",
                       quiet = TRUE)
+
+# read in full school buffers
+ca_schools_full <- st_read("/capstone/casaschools/schools_data/schools_buffer/schools_points_buffer.shp",
+                      quiet = TRUE)
+
 
 # read in California boundary
 ca_boundary <- st_read("/capstone/casaschools/schools_data/CA_boundary/CA_boundary.shp",
@@ -21,37 +24,28 @@ ca_boundary <- st_read("/capstone/casaschools/schools_data/CA_boundary/CA_bounda
 ```
 
 
-## clip wildfire raster to California
+### clip wildfire raster to California
 
 The wildfire hazard potential layer is mapped for the entire United States. For the purposes of our analysis, we only need the area that covers California. We first project the wildfire hazard potential raster to be in the same CRS as the California boundary. We then crop the raster to the boundary with the argument mask = TRUE. This crops the raster to the exact boundary, not just the bounding box of the California layer. This cropping causes fractional values to occur in our raster, which we don't want. This arises from cells on the edges not aligning exactly with the border being resampled. So, we round all the values in the raster to get back on a categorical scale from 1-7. Then, we write the file to the server
 
 ```{r}
-# convert ca_boundary sf object to a terra vector
-#ca_vect <- vect(ca_boundary)
-
 # reproject the whp raster to be on the same coordinate reference system as the California polygon
 whp_us <- project(whp_us, ca_boundary)
 
-summary(whp_us)
-
-# check that the crs was changed
-#st_crs(whp_us) == st_crs(ca_schools)
-
-# crop to the extent of the California boundary
-#whp_ca <- crop(whp_us, ca_boundary, mask = TRUE, touches = FALSE)
-
+# crop to the extent of the California boundary and round fractional cell values
 whp_ca <- crop(whp_us, ca_boundary, mask = TRUE, touches = TRUE)
 
 whp_ca <- round(whp_ca)
 
-#unique(whp_ca)
-
 # save output shapefile as an intermediate layer
 writeRaster(whp_ca, "/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
+
+# read in wildfire hazard potential for California
+whp_ca <- rast("/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
 ```
 
 
-## assign wildfire hazard potential values to school buffers
+### assign wildfire hazard potential values to school buffers
 
 From the metadata, the classifications in the data are as follows:
 
@@ -66,13 +60,8 @@ Values:
 
 Our process for assigning values to school buffers will be to take the average value of cells that overlap with each school buffer. The categories "non-burnable" include developed areas not at risk of wildfire, and "water" also isn't at risk of burning. So, we'll reclassify these values as 0. This essentially says that they are not burnable at all, and represent no risk to the area. The average value of cells will be rounded to the nearest whole number, giving each school area a final value between 1-5, representing very low, low, moderate, high, and very high risk categories.
 
-- How to treat NA values?
-
 ```{r}
 ## reclassify the whp raster values
-
-# remove NA values from the raster
-
 # create a reclassification matrix
 rcl_table <- matrix(c(1, 1,
                       2, 2,
@@ -80,120 +69,45 @@ rcl_table <- matrix(c(1, 1,
                       4, 4,
                       5, 5,
                       6, 0,
-                      7, 0), ncol=2, byrow=TRUE)
+                      7, 0), ncol = 2, byrow = TRUE)
 
 # reclassify the whp raster
 whp_reclass <- classify(whp_ca, rcl = rcl_table)
 
 # check the values of the raster
-summary(whp_reclass)
+unique(whp_reclass)
 ```
 
 ### calculating the value of wildfire hazard potential for every school buffer
 
-The next step in this process is to assign wildfire hazard potential scores for every buffer. This involves taking every cell that overlaps with the school buffers and averaging the wildfire hazard potential score. We'll include cells on the boundary without interpolating scores based on percentage of area. The rationale for this is that score corresponds to the entire cell. If a cell has a wildfire hazard potential score of 2, a buffer boundary cutting it in half doesn't also divide the score by 2. The entire underlying area has a score of 2.
-
-```{r}
-# test with a subset first
-# select one school
-envision <- ca_schools %>% 
-  filter(FedID == "060161410947")
-
-# select overlapping raster cells
-#whp_envision <- crop(whp_reclass, envision)
-
-whp_envision2 <- crop(whp_reclass, envision, mask = TRUE)
-
-plot(whp_envision2)
-
-## convert to polygons to manually calculate mean
-whp_test_poly <- as.polygons(whp_envision2, values = TRUE, aggregate = FALSE) %>% 
-  st_as_sf()
-
-envision_mean_test <- mean(whp_test_poly$Band_1)
-
-# plot to see that it worked
-tm_shape(envision) +
-  tm_polygons(fill = NA) +
-  tm_shape(whp_envision2) +
-  tm_raster()
-
-# extract the mean value of all cells that intersect with the buffer
-# touches = TRUE grabs all of the cells that intersect, not just those fully contained within the polygon
-# bind = TRUE attaches the polygon information to the calculated mean
-envision_mean <- extract(whp_envision2, envision, fun = "mean", method = "simple", ID = TRUE, touches = TRUE, bind = TRUE) %>% 
-  st_as_sf()
-```
-
-
-#### doing it for the whole dataset
+The next step in this process is to assign wildfire hazard potential scores for every buffer. This involves taking every cell that overlaps with the school buffers and averaging the wildfire hazard potential score. We'll include cells on the boundary without interpolating scores based on percentage of area. The rationale for this is that score corresponds to the entire cell. If a cell has a wildfire hazard potential score of 2, a buffer boundary cutting it in half doesn't also divide the score by 2. The entire underlying area has a score of 2. Then, these values will be rounded to the nearest whole number to be back on a scale from 1-5. This is a limitation of the process, in that risk becomes overstated or understated based on the rounding. One area could be a 4.4 and another a 4.6, but those then become 4 and 5, respectively.
 
 ```{r}
 # crop the whp raster to each school, using the buffers as a mask
 whp_schools_mask <- crop(whp_reclass, ca_schools, mask = TRUE)
 
-# plot the result to check
-# tm_shape(whp_schools) +
-#   tm_raster()
-
 # calculate the mean whp value of every school buffer
-# our function is mean, we remove NA values
-# touches = TRUE ensures that any cells that intersect, instead of being fully contained, are included
-# bind = TRUE binds the result to the 
-start <- proc.time()
-
 whp_schools <- extract(whp_schools_mask, ca_schools, fun = "mean", na.rm = TRUE, 
                        method = "simple", touches = TRUE, bind = TRUE) %>% 
   st_as_sf()
 
-end <- proc.time() - start
-
-# view the min and the max to see that it's between 0-5
-min(whp_schools$Band_1)
-max(whp_schools$Band_1)
-
-# find the number of rows that are NA
-sum(is.nan(whp_schools$Band_1))
-
-# round the values to the nearest whole number
+# round the values to the nearest whole number, rounding all values less than 0 up to 1
 whp_schools <- whp_schools %>% 
   rename(whp = Band_1) %>% 
   mutate(whp = round(whp, digits = 0),
-         whp = ifelse(whp == 0, 1, whp))
+         whp = ifelse(whp == 0, 1, whp)) %>% 
+  select(CDSCode, whp)
 
-# view the min and max
-min(whp_schools$whp)
-max(whp_schools$whp)
-```
+# join the whp scores back to the full school buffer areas 
+schools_whp <- left_join(as.data.frame(ca_schools_full), 
+                         as.data.frame(whp_schools),
+                         by = "CDSCode", keep = FALSE) %>% 
+  # drop one of the duplicate geometry columns
+  select(-geometry.y) %>% 
+  # convert back into an sf object
+  st_as_sf(sf_column_name = "geometry.x")
 
-
-### testing 
-
-```{r}
-tmap_mode("view")
-
-tm_shape(whp_ca) +
-  tm_raster()
-
-tm_shape(whp_reclass) +
-  tm_raster()
-```
-
-### testing assumptions
-
-```{r}
-## find the number of cells that become fractional after cropping to California
-# total number of cells
-# this tells us 
-whp_test <- whp_ca_round - whp_ca
-
-# find how many might have been changed to a different score
-selected_cells <- (whp_test < -0.499) | (whp_test > 0.499)
-
-plot(selected_cells)
-
-true_count = sum(values(selected_cells), na.rm = TRUE)
-
-## find the number of cells that changed value that overlap with school buffers
+# write output to the server
+st_write(schools_whp, "/capstone/casaschools/hazard_summary/individual_tables/schools_whp.shp")
 ```
 
