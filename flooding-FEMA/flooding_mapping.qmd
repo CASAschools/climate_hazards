@@ -132,5 +132,52 @@ tm_shape(folsom_lake_high_intersected) +
   
 ```
 
+```{r}
+tmap_mode("view")
 
+# Define a new contrasting blue color palette
+new_palette <- scale_color_manual(values=c("#0C46EE","#6AAEEA","#AEDBEA","#f0f0f0"))
+
+# Plot the map with the updated color palette
+tm_shape(folsom_lake_high_intersected) +
+  tm_polygons(fill = "flood_risk",
+              title = "Flood Risk",
+              labels = c("High", "Moderate to Low", "Undetermined"),
+              palette = c("#0C46EE", "#6AAEEA", "#AEDBEA", "#f0f0f0"), style = "pretty",
+              alpha = 0.3) +
+  tm_shape(folsom_lake_high_flood, alpha = 0.2) + 
+  tm_polygons(fill = "flood_risk", alpha = 0.2, legend.show = FALSE, 
+              palette = c("#0C46EE", "#6AAEEA", "#AEDBEA", "#f0f0f0"), style = "pretty")
+```
+
+Here is the final plot that will be used for the "servers_hazards_plotting" flooding file in the Shiny app. We will use Dos Pueblos Senior High School for initial plotting. 
+
+```{r}
+# pick a school
+dp_sr_high <- schools %>% 
+  filter(CDSCode == 42767864231726)
+
+# grab the flooding polgons that intersect with that school area
+dp_sr_high_flood <- FEMA_reclass[dp_sr_high, ]
+
+#intersect flooding polygons so only the extent within school area is shown
+dp_sr_high_intersected <- st_intersection(dp_sr_high, dp_sr_high_flood)
+
+# plot it
+tmap_mode("view")
+
+flood <- tm_shape(dp_sr_high_intersected) +
+  tm_polygons(fill = "flood_risk",
+              title = "Flood Risk",
+              labels = c("High", "Moderate to Low", "Undetermined"),
+             palette = c("#0C46EE", "#AEDBEA", "#8DB6CD"), style = "pretty",
+              alpha = 0.5) +
+  tm_shape(dp_sr_high_flood, alpha = 0.5) + 
+  tm_polygons(fill = "flood_risk", alpha = 0.5, legend.show=FALSE, 
+              palette = c("#0C46EE", "#AEDBEA", "#8DB6CD"), style = "pretty")
+
+flood
+  
+```
+```
 

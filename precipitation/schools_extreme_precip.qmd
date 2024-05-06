@@ -244,3 +244,128 @@ write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/currentcent8.
 
 write.csv(ca_schools_et_year, "precipitation/currentcent8.5_precip_yeartotals.csv")
 ```
+
+# Historic / Observed
+
+```{r}
+# API request 
+locaschl_et_cap <- ca_loc_sf(loc = loca_ctr_sf, idfld = "id") %>%
+  # CanESM2, CNRM-CM5, HadGEM2-ES, MIROC5
+  ca_gcm(gcms[1:4]) %>%
+  ca_scenario(c("historical")) %>%
+  ca_cvar("pr") %>%
+  ca_period("day") %>%
+  # Mid Century 
+  ca_years(start = 2000, end = 2005)
+
+# Check if request has no erros
+locaschl_et_cap %>% ca_preflight()
+
+head(locaschl_et_cap)
+```
+
+```{r}
+#Next, we fetch the data. Because this is still a lot of locations, we’ll use ca_getvals_db() to save it in a database:
+data_dir_precip_hist_85 <- tools::R_user_dir("pr_hist_85", which = "data")
+schools_dir_precip_hist_85 <- file.path(data_dir_precip_hist_85, "schools_pr_cur_85") %>% normalizePath(mustWork = FALSE)
+if (!file.exists(schools_dir_precip_hist_85)) dir.create(schools_dir_precip_hist_85, recursive = TRUE)
+
+## Define a new SQLite file name
+locaschl_fn_hist85 <- file.path(schools_dir_precip_hist_85, "loca_schl.sqlite") %>% normalizePath(mustWork = FALSE)
+
+
+## Fetch data
+locaschl_et_rtbl <- locaschl_et_cap %>%
+  ca_getvals_db(db_fn = locaschl_fn_hist85, db_tbl = "locaschl_et", new_recs_only = TRUE, quiet = TRUE)
+
+
+head(locaschl_et_rtbl)
+```
+
+```{r}
+# Transform dataset 
+locaschl_et_rtbl_1 <- locaschl_et_rtbl %>% 
+  mutate(month = lubridate::month(dt),
+         year = lubridate::year(dt),
+         val = as.numeric(val))
+
+# Set threshold determined in 'caladapt_precip_r.qmd' and calculate days over
+locaschl_et_rtbl_1 <- locaschl_et_rtbl_1 %>%
+   mutate(threshold = ifelse(val > 0.000216, 1, 0)) %>%
+   # Find total number of days by month and year
+   group_by(id, month, year) %>%
+   summarise(count = sum(threshold))
+# 
+# # View results
+ head(locaschl_et_rtbl_1)
+```
+
+```{r}
+# # Find average monthly yearly days above threshold for 4 GCM's
+ locaschl_et_rtbl_2 <- locaschl_et_rtbl_1 %>% 
+   mutate(average = count/4)
+
+# Rejoin with school points + LOCA id
+ ca_schools_et_sf <- ca_schools_loca_sf %>%  
+   left_join(locaschl_et_rtbl_2, by = "id", copy = TRUE) 
+
+ head(ca_schools_et_sf)
+```
+
+```{r}
+# Find yearly extreme precipitation
+ ca_schools_et_year <- ca_schools_et_sf %>% 
+   group_by(CDSCode, year) %>% 
+   summarise(total = sum(count))
+#   
+ # Find sum total of extreme precipitation days across 1,0008 schools from 2035-2064
+ ca_schools <- ca_schools_et_year %>% 
+   group_by(CDSCode) %>% 
+   summarise(total_35_64 = sum(total)) %>% 
+   mutate(total_35_64 = round(total_35_64,digits = 0))
+```
+
+```{r}
+# Export total extreme precipitation days per year
+write.csv(ca_schools, "/capstone/casaschools/precipitation/hist8.5_precip_sum.csv")
+
+write.csv(ca_schools, "precipitation/hist8.5_precip_sum.csv")
+
+write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/hist8.5_precip_yeartotals.csv")
+
+write.csv(ca_schools_et_year, "precipitation/hist8.5_precip_yeartotals.csv")
+```
+
+# Join data
+
+```{r}
+options(scipen = 999)
+
+
+#precip_00_06 <- read.csv("/capstone/precipitation/hist8.5_precip_yeartotals.csv")
+
+
+precip_rcp85_2006_2034 <- read.csv("/capstone/casaschools/precipitation/currentcent8.5_precip_yeartotals.csv")
+
+precip_rcp85_2035_2064 <- read.csv("/capstone/casaschools/precipitation/midcentury8.5_precip_yeartotals.csv")
+
+
+## Combine to make rcp45 2000-2064
+precip_rcp85_2006_2064 <- rbind(precip_rcp85_2006_2034, 
+                              precip_rcp85_2035_2064)
+
+precip_rcp85_2006_2064 <- precip_rcp85_2006_2064
+
+### export csv to shinydashboard data
+write.csv(precip_rcp85_2006_2064, "/capstone/casaschools/shiny_dashboard/data/precipitation/precip_rcp85_2006_2064.csv")
+```
+
+```{r}
+write.csv(ca_schools, "/capstone/casaschools/precipitation/currentcent8.5_precip_sum.csv")
+
+write.csv(ca_schools, "precipitation/currentcent8.5_precip_sum.csv")
+
+write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/currentcent8.5_precip_yeartotals.csv")
+
+write.csv(ca_schools_et_year, "precipitation/currentcent8.5_precip_yeartotals.csv
+```
