@@ -7,6 +7,7 @@ library(terra)
 library(ggplot2)
 library(tmap)
 library(RColorBrewer)
+library(leaflet)
 ```
 
 
@@ -17,7 +18,7 @@ FEMA_state <- st_read("/capstone/casaschools/flooding/NFHL_06_20240401/NFHL_06_2
                       quiet = TRUE)
 
 # read in california schools data
-schools <- st_read("/capstone/casaschools/schools_data/schools_buffer/",
+schools_buffers <- st_read("/capstone/casaschools/schools_data/schools_buffer/",
                         quiet = TRUE)
 ```
 
@@ -80,10 +81,10 @@ It's tmap time!
 
 ```{r}
 # make sure the crs are the same
-FEMA_reclass <- st_transform(FEMA_reclass, st_crs(schools))
+FEMA_reclass <- st_transform(FEMA_reclass, st_crs(schools_buffers))
 
 # pick a school
-alameda_high <- schools %>% 
+alameda_high <- schools_buffers %>% 
   filter(SchoolName == "Alameda High")
 
 # grab the flooding polgons that intersect with that school area
@@ -108,7 +109,7 @@ tm_shape(alameda_high_intersected) +
 
 ```{r}
 # pick a school
-folsom_lake_high <- schools %>% 
+folsom_lake_high <- schools_buffers %>% 
   filter(SchoolName == "Folsom Lake High")
 
 # grab the flooding polgons that intersect with that school area
@@ -154,7 +155,7 @@ Here is the final plot that will be used for the "servers_hazards_plotting" floo
 
 ```{r}
 # pick a school
-dp_sr_high <- schools %>% 
+dp_sr_high <- schools_buffers %>% 
   filter(CDSCode == 42767864231726)
 
 # grab the flooding polgons that intersect with that school area
@@ -179,5 +180,61 @@ flood <- tm_shape(dp_sr_high_intersected) +
 flood
   
 ```
+
+
+Convert to leaflet map:
+
+```{r}
+
+dp_sr_high_intersected <- st_transform(dp_sr_high_intersected, crs = 4326)
+
+# Extract geometry centroids
+centroids <- st_centroid(dp_sr_high_intersected)
+lng <- st_coordinates(centroids)[, "X"]
+lat <- st_coordinates(centroids)[, "Y"]
+
+# define color palette and labels for FEMA flood zone classification
+labels <- c("High", "Moderate to Low", "Undetermined")
+flood_colors <- c("#0C46EE", "#AEDBEA", "#8DB6CD")
+flood_palette <- colorFactor(palette = flood_colors,
+                           domain = dp_sr_high_intersected$flood_risk)
+
+# pick a school
+dp_sr_high <- schools_buffers %>% 
+  filter(CDSCode == 42767864231726) %>% 
+  st_transform(crs = 4326)
+
+# create the school point as the centroid of the buffer
+dp_point <- dp_sr_high %>% 
+  st_centroid() %>% 
+  st_transform(crs = 4326)
+
+# grab the flooding polygons that intersect with that school area
+dp_sr_high_flood <- FEMA_reclass[dp_sr_high, ]
+
+#intersect flooding polygons so only the extent within school area is shown
+dp_sr_high_intersected <- st_intersection(dp_sr_high, dp_sr_high_flood)
+
+# leaflet map of flood risk potential
+leaflet() %>% 
+  
+  # add basemap
+  addProviderTiles(providers$Esri.WorldTopoMap) %>% 
+  
+  # add cropped flood risk
+  addPolygons(data = dp_sr_high_intersected, fillColor = flood_palette, opacity = .7, group = "Flood Risk") %>% 
+  
+  # add school buffer polygon
+  addPolygons(data = dp_sr_high, color = "black", fill = FALSE, 
+              weight = 2, group = "School Community Area") %>% 
+  # add school point
+  addCircleMarkers(data = dp_point, color = "blue", stroke = FALSE, 
+                   weight = 3, radius = 5, fillOpacity = 1,
+                   group = "School Point") %>% 
+  
+  # add legend for flood risk with custom labels
+  addLegend("bottomright", colors = flood_colors, labels = labels,
+            title = "Flood Risk", opacity = 0.5)
 ```
+
 
