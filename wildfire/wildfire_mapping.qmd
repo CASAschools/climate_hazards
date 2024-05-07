@@ -65,13 +65,6 @@ tm_shape(whp_school) +
 
 ## converting to leaflet code
 ```{r}
-# define color palette and labels for wildfire hazard potential
-labels <- c("non-burnable", "very low", "low", "moderate", "high", "very high", "")
-whp_colors <- c("white", "#fee391", "#fec44f", "#fe9929", "#d95f0e", "#993404", "transparent")
-whp_palette <- colorFactor(palette = whp_colors,
-                           domain = values(whp_school),
-                           na.color = "transparent")
-
 # filter for one school
 dp <- schools_buffers %>% 
   filter(SchoolName == "Dos Pueblos Senior High")
@@ -86,6 +79,13 @@ whp_school <- crop(whp_reclass, dp)
 # data needs to be in lot/long format, or transformed to WGS 1984
 dp <- st_transform(dp, crs = 4326)
 dp_point <- st_transform(dp_point, crs = 4326)
+
+# define color palette and labels for wildfire hazard potential
+labels <- c("non-burnable", "very low", "low", "moderate", "high", "very high", "")
+whp_colors <- c("white", "#fee391", "#fec44f", "#fe9929", "#d95f0e", "#993404", "transparent")
+whp_palette <- colorFactor(palette = whp_colors,
+                           domain = values(whp_school),
+                           na.color = "transparent")
 
 
 # leaflet map of wildfire hazard potential
