@@ -222,20 +222,20 @@ leaflet() %>%
   addProviderTiles(providers$Esri.WorldTopoMap) %>% 
   
   # add cropped flood risk
-  addPolygons(data = dp_sr_high_intersected, fillColor = ~flood_colors(flood_risk), opacity = .7, group = "flood_risk") %>% 
+  addPolygons(data = dp_sr_high_intersected, fillColor = c("#0C46EE", "#AEDBEA", "#8DB6CD"), fill = TRUE, fillOpacity = .7, group = "Flood Risk") %>% 
   
   # add school buffer polygon
   addPolygons(data = dp_sr_high, color = "black", fill = FALSE, 
               weight = 2, group = "School Community Area") %>% 
   
   # add school point
-  addCircleMarkers(data = dp_point, color = "blue", stroke = FALSE, 
-                   weight = 2, radius = 5, fillOpacity = 1,
+  addCircleMarkers(data = dp_point, color = "black", stroke = FALSE, 
+                   weight = 10, radius = 5, fillOpacity = 1,
                    group = "School Point") %>% 
   
   # add legend for flood risk with custom labels
   addLegend("bottomright", colors = c("#0C46EE", "#AEDBEA", "#8DB6CD"), labels = labels,
-            title = "Flood Risk", opacity = 0.5)
+            title = "Flood Risk", opacity = 0.7)
 ```
 
 
