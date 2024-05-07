@@ -195,7 +195,7 @@ lat <- st_coordinates(centroids)[, "Y"]
 
 # define color palette and labels for FEMA flood zone classification
 labels <- c("High", "Moderate to Low", "Undetermined")
-flood_colors <- c("#0C46EE", "#AEDBEA", "#8DB6CD")
+flood_colors <- colorFactor(c("#0C46EE", "#AEDBEA", "#8DB6CD"), levels = c("High", "Moderate to Low", "Undetermined"))
 flood_palette <- colorFactor(palette = flood_colors,
                            domain = dp_sr_high_intersected$flood_risk)
 
@@ -222,18 +222,19 @@ leaflet() %>%
   addProviderTiles(providers$Esri.WorldTopoMap) %>% 
   
   # add cropped flood risk
-  addPolygons(data = dp_sr_high_intersected, fillColor = flood_palette, opacity = .7, group = "Flood Risk") %>% 
+  addPolygons(data = dp_sr_high_intersected, fillColor = ~flood_colors(flood_risk), opacity = .7, group = "flood_risk") %>% 
   
   # add school buffer polygon
   addPolygons(data = dp_sr_high, color = "black", fill = FALSE, 
               weight = 2, group = "School Community Area") %>% 
+  
   # add school point
   addCircleMarkers(data = dp_point, color = "blue", stroke = FALSE, 
-                   weight = 3, radius = 5, fillOpacity = 1,
+                   weight = 2, radius = 5, fillOpacity = 1,
                    group = "School Point") %>% 
   
   # add legend for flood risk with custom labels
-  addLegend("bottomright", colors = flood_colors, labels = labels,
+  addLegend("bottomright", colors = c("#0C46EE", "#AEDBEA", "#8DB6CD"), labels = labels,
             title = "Flood Risk", opacity = 0.5)
 ```
 
