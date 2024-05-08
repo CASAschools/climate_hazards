@@ -1,0 +1,121 @@
+---
+title: "Prepping CalMatter data for dashboard"
+editor: visual
+author: "CASAschools"
+---
+
+```{r}
+# Load necessary packages
+library(tidyverse)
+library(zoo)
+library(sf)
+library(janitor)
+```
+
+```{r}
+# Read in data
+calmatters <- read_csv("/capstone/casaschools/shiny_dashboard/data/calmatters/disasterDays.csv")
+
+calschools <- st_read("/capstone/casaschools/schools_data/California_Schools_2022-23/California_Schools_2022-23.shp") %>% st_drop_geometry()
+
+# make sure the full cdscode can be seen
+options(scipen = 999)
+
+```
+
+#### Filtering
+
+```{r}
+# Filter for active schools
+calschools <- calschools %>% 
+  filter(Status == "Active") %>% 
+  # select columns we'll need
+  select(SchoolName, DistrictNa, CDSCode) %>% 
+    clean_names() %>% 
+  # rename columns
+   rename(school = school_name,
+         district = district_na)
+
+
+# Filter calmatters disaster data
+# Natural disasters & Weather & Wildfire causes for closures
+calmatters1 <- calmatters %>% 
+  filter(category %in% c("Natural Disasters & Weather","Wildfires"))
+
+# filtered to just get total number of school closures 
+calmatters2 <- calmatters1 %>% 
+  group_by(school,district, cds_code) %>% 
+  summarise(total = sum(days)) %>% 
+  mutate(cdscode_c = as.character(cds_code),
+         count = nchar(cdscode_c),
+         # some rows are missing 0's in front
+         cdscode_new = ifelse(count == 13, paste0("0", cdscode_c),
+                              cdscode_c))
+
+```
+#### Comparing Datasets
+
+```{r}
+# Combine calmatters2 and schools by matching school and district name
+trial <- merge(calmatters2, calschools, by = c("school","district")) %>% 
+  select(-cds_code.x) %>% 
+  rename(cds_code = cds_code.y)
+
+## anti join ones that are missing
+anti_trial <- anti_join(calmatters2,trial,by = c("school","district")) %>% 
+  rename(cds = cds_code,
+         cds_code = cdscode_new)
+
+## Rejoin antijoin to see those that have matching cds_code but different names
+trial2 <- merge(anti_trial, calschools, by = "cds_code")
+
+# Join trial 1 & 2 into a dataframe of schools already checked and cleaned
+schools_checked <- trial2 %>% 
+  select(school.y, district.y, total, cds_code) %>% 
+  rename(school = school.y,
+         district = district.y) %>% rbind(.,trial)
+
+########### Now find the ones remaining not included in schools_checked
+## these join them back with calmatters2 by the cdscode
+
+### Clean calmatters2 + trial 2
+calmatters2 <- calmatters2 %>% 
+  select(-c(cds_code, cdscode_c, count)) %>% 
+  rename(cds_code = cdscode_new)
+
+
+merge2 <- merge(calmatters2, calschools, by = c("school","district","cds_code"))
+
+# Rows that are missing CDSCodes or do not have matching school and district names
+anti_m <- anti_join(calmatters2, calschools, by = c("school","district","cds_code"))
+
+# Export csv
+write.csv(anti_calmatter, "cleaned.csv")
+```
+
+The rows identified as missing CDSCode or without matching school name and district were manually fixed outside of this QMD file. It was decided it was the best approach as there is no open data source of updated school names and school districts. The following is working with the data that was cleaned through Excel. 
+
+```{r}
+# Import cleaned data
+cleaned_calmatters <- read_csv("/capstone/casaschools/shiny_dashboard/data/calmatters/calmatters_clean.csv") %>% select(-"...5")
+
+# Double check cdscode has the correct string length
+cleaned_calmatters <- cleaned_calmatters %>% 
+  group_by(school,district, cds_code) %>% 
+  summarise(total = sum(total)) %>% 
+  mutate(cdscode_c = as.character(cds_code),
+         count = nchar(cdscode_c),
+         # some rows are missing 0's in front
+         cdscode_new = ifelse(count == 13, paste0("0", cdscode_c),
+                              cdscode_c))
+
+
+# rejoin this data with schools_checked
+disaster_days <- merge()
+```
+
+
+
+
+
+
