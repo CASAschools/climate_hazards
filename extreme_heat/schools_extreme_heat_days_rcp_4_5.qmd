@@ -346,7 +346,7 @@ heat_rcp45_2000_2064 <- heat_rcp45_2000_2064 %>%
   select(-X)
 
 ### export csv to shinydashboard data
-write.csv(heat_rcp45_2000_2064, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp45_2000_20064.csv")
+write.csv(heat_rcp45_2000_2064, "/capstone/casaschools/extreme_heat/heat_rcp45_2000_20064.csv")
 
 ```
 
