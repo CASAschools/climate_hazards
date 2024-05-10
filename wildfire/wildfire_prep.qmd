@@ -107,7 +107,11 @@ schools_whp <- left_join(as.data.frame(ca_schools_full),
   # convert back into an sf object
   st_as_sf(sf_column_name = "geometry.x")
 
-# write output to the server
-st_write(schools_whp, "/capstone/casaschools/hazard_summary/individual_tables/schools_whp.shp")
+# select relevant information and export to server for hazard summary calculation
+schools_whp <- schools_whp %>% 
+  select(CDSCode, SchoolName, whp) %>% 
+  st_drop_geometry()
+
+write_csv(schools_whp, "/capstone/casaschools/hazard_summary/individual_tables/schools_whp.csv")
 ```
 

@@ -2,122 +2,32 @@
 library(sf)
 library(tidyverse)
 library(tmap)
+library(leaflet)
 ```
 
+### reading in data
 
-### Calculating sea level rise with information for just one county
+We are using data from the USGS Coastal Storm Modeling system, or CoSMoS. The data we downloaded are polygons describing the extent of coastal flooding under a .8 ft sea level rise scenario (which is an intermediate 2050 scenario) and a 100 year coastal storm. The data covers coastal areas from San Diego County north to Point Arena in Mendocino County, but lacks coverage of the coastal areas north of there. It also covers the San Francisco Bay inner coastline. The values are given in centimeters, with .8 feet equaling 25 cm. 
 
-Data preparation. We are using data from the USGS Coastal Storm Modeling system, or CoSMoS. The data we downloaded are polygons describing the extent of coastal flooding under a .8 ft sea level rise scenario (which is an intermediate 2050 scenario) and a 100 year coastal storm. The data covers coastal areas from San Diego County north to Point Arena in Mendocino County, but lacks coverage of the coastal areas north of there. It also covers the San Francisco bay inner coastline. The values are given in centimeters, with .8 feet equaling 25 cm. 
-
-We'll first test the process with schools in one coastal county, Los Angeles
+We have 14 different shapefiles for sea level rise. To read them and combine them into one sf object, we need to write a function. Not all of the shapefiles are on the same crs, and we want all of them to be on the same crs as the ca schools layer. So, we're just going to convert them all to the crs of the schools buffers. Each of the layers also has different amounts of columns, so we're only going to select the geometry column in order to be able to combine all of the shapefiles into one. The function reads in a shapefile, converts the coordinate reference system, and then drops all columns except for the geometry column. Then, we use lapply to apply the function to each shapefile in our list, returning a list. Then, we merge all of the shapefiles into one. The sea level rise polygons extend out from the coast, so we'll crop them to the coastline
 
 ```{r}
-# read in sea level rise polygons
-cf_la <- st_read("/capstone/casaschools/coastal_flooding/raw_data/cosmos/la",
-                  quiet = TRUE)
-
-# read in CA school districts
-ca_schools <- st_read("/capstone/casaschools/schools_data/schools_buffer_clip",
+# read in clipped CA school buffers
+ca_schools_clip <- st_read("/capstone/casaschools/schools_data/schools_buffer_clip",
                       quiet = TRUE)
 
-# filter to Los Angeles County schools
-la_schools <- ca_schools %>% 
-  filter(CountyName %in% "Los Angeles")
-```
+# read in California boundary
+ca_boundary <- st_read("/capstone/casaschools/schools_data/CA_boundary/CA_boundary.shp",
+                       quiet = TRUE)
 
-Next, we need to find the percentage of area of each school polygon that is inundated with this scenario. We need to ensure that the layers are on the same CRS so that we can perform spatial operations on them. We'll convert the coastal flooding layer to be on the same coordinate reference system as the schools layer
-
-```{r}
-# get our school boundaries and our sea level rise on the same CRS
-cf_la <- st_transform(cf_la, crs = st_crs(la_schools))
-
-st_crs(cf_la) == st_crs(la_schools)
-```
-
-Next, we are going to find the intersections. We are going to find the area of intersection of the sea level rise polygon on each school district. Then, we are going to calculate the areas using st_area, and join the two dataframes together. The units are in square meters. The first line of code using st_intersection creates new polygons that are the overlap between each school buffer and the coastal flooding area. During this process, certain polygons are duplicated as they may intersect with multiple school buffers. Then, we 
-
-```{r}
-# find the intersections
-la_schools_slr <- st_intersection(la_schools, cf_la)
-
-# find the area of each intersection polygon
-la_schools_slr$slr_area <- st_area(la_schools_slr)
-
-# also find the area of each original district polygon to compare
-la_schools$area <- st_area(la_schools)
-
-## join the two together
-# select only necessary columns to join
-la_schools_slr <- la_schools_slr %>% 
-  select(CDSCode, slr_area)
-
-# group by CDSCode (unique school id) and sum all of the sea level rise areas
-la_schools_slr <- la_schools_slr %>% 
-  group_by(CDSCode) %>% 
-  summarise(slr_area = sum(slr_area))
-
-# conduct a join, converting the sf objects into dataframes
-slr_la <- full_join(la_schools %>% as.data.frame(), 
-                     la_schools_slr %>% as.data.frame(), 
-                     by = "CDSCode", keep = FALSE) %>% 
-  mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
-         slr_area = as.numeric(slr_area)) %>% 
-  mutate(slr_area = replace_na(slr_area, 0)) %>% # replace NAs with 0s
-  mutate(slr_percent = (slr_area / area) * 100) %>% # calculate sea level rise inundation percentage
-  st_sf(sf_column_name = "geometry.x") # convert back to an sf object
-```
-
-```{r}
-tmap_mode("view")
-
-# plot the alameda school districts by percentage sea level rise
-tm_shape(la_schools) +
-  tm_polygons() +
-  tm_shape(la_schools_slr) +
-  tm_polygons(fill = "blue",
-              alpha = .5)
-
-tm_shape(alameda_slr) +
-  tm_polygons() +
-  tm_shape(slr_alameda) +
-  tm_polygons(fill = "slr_percent")
-
-# w
-```
-
-### testing
-
-Why are some polygons duplicated after the intersection? My guess is that the overlap polygons are duplicated for areas where there is overlap between multiple schools. There can also be multiple flooding polygons associated with the same school, as the original layer is composed of many polygons, multiple of which can fall in the same school buffer area.
-
-```{r}
-# why are some polygons duplicated?
-slr_test <- la_schools_slr %>% 
-  filter(ID == 14)
-
-slr_test2 <- la_schools_slr %>% 
-  filter(CDSCode == 19647256015408)
-
-tm_shape(slr_test2) +
-  tm_polygons(col = "blue")
-
-# the amount of polygons in la_schools_slr should be the same as this spatial subset, which is 291
-la_schools[cf_la, ]
-```
-
-
-## Scaling up the process for all counties
-
-We have 14 different shapefiles for sea level rise. To read them and combine them into one sf object, we need to write a function. Not all of the shapefiles are on the same crs, and we want all of them to be on the same crs as the ca schools layer. So, we're just going to convert them all to the crs of the schools buffers. Each of the layers also has different amounts of columns, so we're only going to select the geometry column in order to be able to combine all of the shapefiles into one. The function reads in a shapefile, converts the coordinate reference system, and then drops all columns except for the geometry column. Then, we use lapply to apply the function to each shapefile in our list, returning a list. Then, we merge all of the shapefiles into one.
-
-```{r}
 # read in sea level rise polygons
-ca_cf_files <- list.files("/capstone/casaschools/coastal_flooding/raw_data/cosmos/all", pattern = "*.shp", full.names = TRUE)
+ca_slr_files <- list.files("/capstone/casaschools/sea_level_rise/raw_data/cosmos/all", pattern = "*.shp", full.names = TRUE)
 
 # read in files and transform to the crs of the california schools buffers
-read_transform_crs <- function(ca_cf_files, target_crs = st_crs(ca_schools)) {
+read_transform_crs <- function(ca_slr_files, target_crs = 3857) {
   
   # read in shapefile
-  shapefile <- st_read(ca_cf_files, quiet = TRUE)
+  shapefile <- st_read(ca_slr_files, quiet = TRUE)
   
   # convert crs of the shapefile to the target crs
   shapefile <- st_transform(shapefile, crs = target_crs)
@@ -130,41 +40,114 @@ read_transform_crs <- function(ca_cf_files, target_crs = st_crs(ca_schools)) {
 }
 
 # apply the function to each shapefile
-cf_shapefiles <- lapply(ca_cf_files, read_transform_crs)
+slr_shapefiles <- lapply(ca_slr_files, read_transform_crs)
 
 # merge all shapefiles into one sf object
-ca_cf <- do.call(rbind, cf_shapefiles)
+ca_slr <- do.call(rbind, slr_shapefiles)
+
+# crop ca_slr to the coastline of California to exclude slr data in the ocean
+ca_slr <- st_intersection(ca_slr, ca_boundary)
 ```
 
+### calculating sea level rise for the whole state
+
+Next, we are going to find the intersections. We are going to find the area of intersection of the sea level rise polygon on each school district. Then, we are going to calculate the areas using st_area, and join the two dataframes together. The units are in square meters. The first line of code using st_intersection creates new polygons that are the overlap between each school buffer and the coastal flooding area. Each intersection polygon is associated with a specific school ID (CDSCode), so polygons are duplicated where they intersect with multiple school buffer areas. Additionally, multiple orginal sea level rise polygons can fall within one school buffer. For this reason, we need to sum all of the sea level rise areas associated with each school ID to find the total area of each school buffer affected by sea level rise and a coastal storm.
 
 ```{r}
 # find the intersections
-ca_schools_cf <- st_intersection(ca_schools, ca_cf)
+ca_schools_slr <- st_intersection(ca_schools_clip, ca_slr)
 
 # find the area of each intersection polygon
-ca_schools_cf$slr_area <- st_area(ca_schools_cf)
+ca_schools_slr$slr_area <- st_area(ca_schools_slr)
 
-# also find the area of each original district polygon to compare
-ca_schools$area <- st_area(ca_schools)
+# also find the area of each original school buffer clipped polygon to compare
+ca_schools_clip$area <- st_area(ca_schools_clip)
 
 ## join the two together
 # select only necessary columns to join
-ca_schools_cf <- ca_schools_cf %>% 
+ca_schools_slr <- ca_schools_slr %>% 
   select(CDSCode, slr_area)
 
 # group by CDSCode (unique school id) and sum all of the sea level rise areas
-ca_schools_cf <- ca_schools_cf %>% 
+ca_schools_slr <- ca_schools_slr %>% 
   group_by(CDSCode) %>% 
   summarise(slr_area = sum(slr_area))
 
 # conduct a join, converting the sf objects into dataframes
-cf_ca_join <- full_join(ca_schools %>% as.data.frame(), 
-                     ca_schools_cf %>% as.data.frame(), 
+slr_ca_join <- full_join(ca_schools_clip %>% as.data.frame(), 
+                     ca_schools_slr %>% as.data.frame(), 
                      by = "CDSCode", keep = FALSE) %>% 
   mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
          slr_area = as.numeric(slr_area)) %>% 
   mutate(slr_area = replace_na(slr_area, 0)) %>% # replace NAs with 0s
   mutate(slr_percent = (slr_area / area) * 100) %>% # calculate sea level rise inundation percentage
   st_sf(sf_column_name = "geometry.x") # convert back to an sf object
+
+# select relevant information and export to server for hazard summary calculation
+slr_schools <- slr_ca_join %>% 
+  select(CDSCode, SchoolName, slr_percent) %>% 
+  st_drop_geometry()
+
+#write_csv(slr_schools, "/capstone/casaschools/hazard_summary/individual_tables/schools_slr.csv")
 ```
+
+
+### Mapping sea level rise within school buffers
+
+```{r}
+# load full ca_schools buffers
+schools_buffers <- st_read("/capstone/casaschools/schools_data/schools_buffer/",
+                        quiet = TRUE)
+```
+
+```{r}
+# filter for one school
+dp <- schools_buffers %>% 
+  filter(SchoolName == "Dos Pueblos Senior High")
+
+# create school point as the centroid of the buffer
+dp_point <- dp %>% 
+  st_centroid()
+
+# transform layers needed to WGS 1984 for mapping
+dp <- st_transform(dp, crs = 4326)
+dp_point <- st_transform(dp_point, crs = 4326)
+ca_slr <- st_transform(ca_slr, crs = 4326)
+
+# select the sea level rise polygons that overlap
+dp_slr_poly <- ca_slr[dp, ]
+
+# select sea level rise polygons that intersect
+dp_slr_clip <- st_intersection(dp, dp_slr_poly)
+
+# plot the extent of sea level rise
+leaflet() %>% 
+  
+  # add basemap
+  addProviderTiles(providers$Esri.WorldTopoMap) %>% 
+  
+  # add clipped sea level rise polygon
+  addPolygons(data = dp_slr_clip, fillColor = "blue", group = "area1") %>% 
+  
+  # add overlap sea level rise polygons
+  addPolygons(data = dp_slr_poly, fillColor = "red", opacity = .7, group = "area2") %>% 
+  
+  # add school buffer polygon
+  addPolygons(data = dp, color = "black", fill = FALSE,
+              weight = 2, group = "school area") %>% 
+  
+  # add school point
+  addCircleMarkers(data = dp_point, color = "orange", stroke = FALSE,
+                   weight = 2, radius = 5, fillOpacity = 1, group = "school point") %>% 
+  
+  # add option to toggle data on and off
+   addLayersControl(
+    overlayGroups = c("area1", "area2", "school area", "school point"),
+    options = layersControlOptions(collapsed = FALSE)  # Keeps the layers control open
+  ) %>% 
+  
+  # set zoom to be the bounding box of the school buffer
+  setView(leaflet::bbox(dp))
+```
+
 
