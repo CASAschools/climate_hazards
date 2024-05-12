@@ -38,7 +38,7 @@ whp_ca <- crop(whp_us, ca_boundary, mask = TRUE, touches = TRUE)
 whp_ca <- round(whp_ca)
 
 # save output shapefile as an intermediate layer
-writeRaster(whp_ca, "/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
+#writeRaster(whp_ca, "/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
 
 # read in wildfire hazard potential for California
 whp_ca <- rast("/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
@@ -76,6 +76,9 @@ whp_reclass <- classify(whp_ca, rcl = rcl_table)
 
 # check the values of the raster
 unique(whp_reclass)
+
+# write result to the server
+#writeRaster(whp_reclass, "/capstone/casaschools/wildfire/intermediate_layers/whp_reclass.tif")
 ```
 
 ### calculating the value of wildfire hazard potential for every school buffer
@@ -107,7 +110,66 @@ schools_whp <- left_join(as.data.frame(ca_schools_full),
   # convert back into an sf object
   st_as_sf(sf_column_name = "geometry.x")
 
-# write output to the server
-st_write(schools_whp, "/capstone/casaschools/hazard_summary/individual_tables/schools_whp.shp")
+# select relevant information and export to server for hazard summary calculation
+schools_whp <- schools_whp %>% 
+  select(CDSCode, SchoolName, whp) %>% 
+  st_drop_geometry()
+
+write_csv(schools_whp, "/capstone/casaschools/hazard_summary/individual_tables/schools_whp.csv")
+```
+
+## repeating the process for the 2012 version of the data
+
+```{r}
+# read in data
+whp_us2012 <- rast("/capstone/casaschools/wildfire/raw_data/whp_2012/")
+
+# reproject the whp raster to be on the same coordinate reference system as the California polygon
+whp_us2012 <- project(whp_us2012, ca_boundary)
+
+# crop to the extent of the California boundary and round fractional cell values
+whp_ca2012 <- crop(whp_us2012, ca_boundary, mask = TRUE, touches = TRUE)
+
+whp_ca2012 <- round(whp_ca2012)
+
+# create a reclassification matrix
+rcl_table <- matrix(c(1, 1,
+                      2, 2,
+                      3, 3,
+                      4, 4,
+                      5, 5,
+                      6, 0,
+                      7, 0), ncol = 2, byrow = TRUE)
+
+# reclassify the whp raster
+whp_reclass2012 <- classify(whp_ca2012, rcl = rcl_table)
+
+# check the values of the raster
+unique(whp_reclass2012)
+
+# write result to the server
+#writeRaster(whp_reclass2012, "/capstone/casaschools/wildfire/intermediate_layers/whp_reclass2012.tif")
+```
+
+## comparing the two rasters
+
+subtracting to see what the difference is. Some have values like -5, which could only arise from areas that are developed now (a value of 0), and used to be in the very high risk category.
+
+```{r}
+whp_reclass <- rast("/capstone/casaschools/wildfire/intermediate_layers/whp_reclass.tif")
+
+# Resample 'whp_reclass2012' to match the extent and resolution of 'whp_reclass'
+whp_reclass2012_resampled <- resample(whp_reclass2012, whp_reclass, method = "near")
+
+# Perform the subtraction
+whp_increase <- whp_reclass - whp_reclass2012_resampled
+
+plot(whp_reclass)
+
+plot(whp_reclass2012)
+
+plot(whp_increase)
+
+freq(whp_increase)
 ```
 
