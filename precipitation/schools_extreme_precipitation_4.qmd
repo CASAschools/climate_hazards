@@ -127,7 +127,8 @@ head(locaschl_et_rtbl_1)
 # Find yearly extreme precipitation
  ca_schools_et_year <- ca_schools_et_sf %>% 
    group_by(CDSCode, year) %>% 
-   summarise(total = sum(count))
+   summarise(total = sum(count))%>% 
+st_drop_geometry()
 #   
  # Find sum total of extreme precipitation days across 1,0008 schools from 2035-2064
  ca_schools <- ca_schools_et_year %>% 
@@ -138,15 +139,17 @@ head(locaschl_et_rtbl_1)
 
 
 ```{r}
-# Export total extreme precipitation days per year
+#Export Extreme Precipitation Totals for Mid Century Scenario
 
-write.csv(ca_schools, "/capstone/casaschools/precipitation/midcentury4.5_precip_sum.csv")
+write.csv(ca_schools, "/capstone/casaschools/precipitation/midcentury45.csv")
 
-write.csv(ca_schools, "precipitation/midcentury4.5_precip_sum.csv")
+write.csv(ca_schools, "precipitation/midcentury45.csv")
 
-write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/midcentury4.5_precip_yeartotals.csv")
+#Export Extreme Precipitation Totals per year for Mid Century Scenario
 
-write.csv(ca_schools_et_year, "precipitation/midcentury4.5_precip_yeartotals.csv")
+write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/midcentury45_year.csv" )
+
+write.csv(ca_schools_et_year, "precipitation/midcentury45_year.csv" )
 
 ```
 
@@ -251,7 +254,8 @@ head(ca_schools_et_sf)
 # Find yearly extreme precipitation
  ca_schools_et_year <- ca_schools_et_sf %>% 
    group_by(CDSCode, year) %>% 
-   summarise(total = sum(count))
+   summarise(total = sum(count)) %>% 
+st_drop_geometry()
 #   
  # Find sum total of extreme precipitation days across 1,0008 schools from 2035-2064
  ca_schools <- ca_schools_et_year %>% 
@@ -262,80 +266,16 @@ head(ca_schools_et_sf)
 
 
 ```{r}
-# Export total extreme precipitation days per year
-write.csv(ca_schools, "/capstone/casaschools/precipitation/currentcent4.5_precip_sum.csv")
+#Export Extreme Precipitation Totals for Current Century Scenario
 
-write.csv(ca_schools, "precipitation/currentcent4.5_precip_sum.csv")
+write.csv(ca_schools, "/capstone/casaschools/precipitation/curcentury45.csv")
 
-write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/currentcent4.5_precip_yeartotals.csv")
+write.csv(ca_schools, "precipitation/curcentury45.csv")
 
-write.csv(ca_schools_et_year, "precipitation/currentcent4.5_precip_yeartotals.csv")
-```
+#Export Extreme Precipitation Totals per year for Current Century Scenario
 
+write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/curcentury45_year.csv" )
 
-# Join Data
-```{r}
-options(scipen = 999)
-
-
-precip_00_06 <- read.csv("/capstone/casaschools/precipitation/hist8.5_precip_yeartotals.csv")
-
-
-precip_rcp45_2006_2034 <- read.csv("/capstone/casaschools/precipitation/currentcent4.5_precip_yeartotals.csv")
-
-precip_rcp45_2035_2064 <- read.csv("/capstone/casaschools/precipitation/midcentury4.5_precip_yeartotals.csv")
-
-
-## Combine to make rcp45 2000-2064
-precip_rcp45_2000_2064 <- rbind(precip_00_06, precip_rcp45_2006_2034, 
-                              precip_rcp45_2035_2064)
-
-precip_rcp45_2000_2064 <- precip_rcp45_2000_2064
-
-### export csv to shinydashboard data
-write.csv(precip_rcp45_2000_2064, "/capstone/casaschools/shiny_dashboard/data/precipitation/precip_rcp45_2000_2064.csv")
-
-# Jrename columns
-precip_rcp45_2000_2064 <- precip_rcp45_2000_2064 %>% 
-  rename(
-    CDSCode = X,
-year = CDSCode,
-total = year,
-lat = total,
-long = geometry
-    )
-
-precip_rcp85_2006_2064 <- precip_rcp85_2006_2064 %>% rename(
-    CDSCode = X,
-year = CDSCode,
-total = year,
-lat = total,
-long = geometry
-    )
-
-```
-
-```{r}
-# extreme precip plot
-dos_pueblos <- precip_rcp45_2000_2064 %>% filter(CDSCode == 42767864231726)
-
-
-
-dos_pueblos$scenario <- 'intermediate scenario'
-
-dos_pueblos85 <- precip_rcp85_2006_2064 %>% filter(CDSCode == 42767864231726)
-
-dos_pueblos85$scenario <- 'business as usual'
-
-dos_combined <- rbind(dos_pueblos, dos_pueblos85)
-
-ggplot(dos_combined, aes(year, total)) + geom_line(aes(color = scenario)) + theme_minimal() + labs(x = "Year", y = "Number of Extreme Precipitation Days")
-
-ggplot(data = sac_tasmax_tbl2, 
-       aes(x = as.Date(dt), y = as.numeric(temp_f))) +
-  geom_line(aes(color=gcm)) +
-  facet_grid(scenario ~ .) +
-  labs(title = "Annual Average Maximum Daily Temperature for Sacramento", x = "year", y = "temp (F)")
-
+write.csv(ca_schools_et_year, "precipitation/curcentury45_year.csv" )
 ```
 

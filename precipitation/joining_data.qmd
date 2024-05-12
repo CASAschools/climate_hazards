@@ -1,0 +1,116 @@
+---
+title: "joining data"
+format: html
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+options(scipen = 999)
+
+current85 <- read.csv("/capstone/casaschools/precipitation/curcentury85.csv")
+ mid85 <- read.csv("/capstone/casaschools/precipitation/midcentury85.csv")
+ historic <- read.csv("/capstone/casaschools/precipitation/historic85.csv")
+ 
+ #add in century column
+ 
+ current85 <- current85 %>%mutate(century = "Current")
+ 
+ mid85 <- mid85 %>%mutate(century = "Mid")
+ 
+ historic <- historic %>%  mutate(century = "Historic")
+ 
+ #rename total columns
+ 
+ current85 <- current85 %>%rename(total = total_06_34)
+ 
+ mid85 <- mid85 %>%rename(total = total_35_64)
+ 
+ historic <- historic %>%rename(total = total_00_06)
+ 
+
+ century_totals_combined <- rbind(mid85, current85, historic)
+ 
+ century_totals_combined <- century_totals_combined[, -1]
+
+ write.csv(century_totals_combined, "/capstone/casaschools/precipitation/century_totals_combined.csv")
+
+
+```
+
+```{r}
+
+ options(scipen = 999)
+
+ current85_year <- read.csv("/capstone/casaschools/precipitation/curcentury85_year.csv")
+ mid85_year <- read.csv("/capstone/casaschools/precipitation/midcentury85_year.csv")
+ historic_year <- read.csv("/capstone/casaschools/precipitation/historic85_year.csv")
+ 
+ current85_year <- current85_year %>%
+   mutate(century = "Current")
+ 
+ mid85_year <- mid85_year %>%
+   mutate(century = "Mid")
+ 
+ historic_year <- historic_year %>% 
+   mutate(century = "Historic")
+ year_totals_combined <- rbind(mid85_year, current85_year, historic_year)
+ 
+ year_totals_combined <- year_totals_combined[, -1]
+
+ write.csv(century_totals_combined, "/capstone/casaschools/precipitation/year_totals_combined.csv")
+ 
+```
+
+# Combining rcp4.5 scenarios
+
+```{r}
+options(scipen = 999)
+
+current45 <- read.csv("/capstone/casaschools/precipitation/curcentury45.csv")
+ mid45 <- read.csv("/capstone/casaschools/precipitation/midcentury45.csv")
+ 
+ #add in century column
+ 
+ current45 <- current45 %>%mutate(century = "Current")
+ 
+ mid45 <- mid45 %>%mutate(century = "Mid")
+
+ 
+ #rename total columns
+ 
+ current45 <- current45 %>%rename(total = total_06_34)
+ 
+ mid45 <- mid45 %>%rename(total = total_35_64)
+
+ 
+
+ century_totals_combined45 <- rbind(mid45, current45)
+ 
+ century_totals_combined45 <- century_totals_combined45[, -1]
+
+ write.csv(century_totals_combined, "/capstone/casaschools/precipitation/century_totals_combined45.csv")
+```
+
+```{r}
+ options(scipen = 999)
+
+ current45_year <- read.csv("/capstone/casaschools/precipitation/curcentury45_year.csv")
+ mid45_year <- read.csv("/capstone/casaschools/precipitation/midcentury45_year.csv")
+ 
+ current45_year <- current45_year %>%
+   mutate(century = "Current")
+ 
+ mid45_year <- mid45_year %>%
+   mutate(century = "Mid")
+
+ year_totals_combined45 <- rbind(mid45_year, current45_year)
+ 
+ year_totals_combined45 <- year_totals_combined45[, -1]
+
+ write.csv(century_totals_combined, "/capstone/casaschools/precipitation/year_totals_combined45.csv")
+ 
+```
+
