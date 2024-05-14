@@ -400,6 +400,6 @@ extreme_heat_zeros <- extreme_heat %>%
 # Export dataset into shiny dashboard
 #write.csv(extreme_heat,"/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
 
-write.csv(extreme_heat,"/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat_zeros.csv")
+write.csv(extreme_heat_zeros,"/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat_zeros.csv")
 ```
 
