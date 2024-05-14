@@ -353,7 +353,17 @@ heat_rcp85_2000_2064 <- rbind(heat_2000_2005,
 heat_rcp85_2000_2064 <- heat_rcp85_2000_2064 %>%
   select(-X)
 
+heat_rcp85_2000_2064_zeros <- heat_rcp85_2000_2064 %>% 
+  group_by(CDSCode, year, total) %>% 
+  mutate(CDSCode = as.character(CDSCode),
+         count = nchar(CDSCode),
+         # some rows are missing 0's in front
+         CDSCode = ifelse(count == 13, paste0("0", CDSCode),
+                              CDSCode))
+
 ### export csv to shinydashboard data
 write.csv(heat_rcp85_2000_2064, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064.csv")
+
+write.csv(heat_rcp85_2000_2064_zeros, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064_zeros.csv")
 ```
 
