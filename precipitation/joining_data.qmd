@@ -81,7 +81,7 @@ current45 <- read.csv("/capstone/casaschools/precipitation/curcentury45.csv")
  
  #rename total columns
  
- current45 <- current45 %>%rename(total = total_06_34)
+ current45 <- current45 %>%rename(total = total_35_64)
  
  mid45 <- mid45 %>%rename(total = total_35_64)
 
@@ -91,7 +91,7 @@ current45 <- read.csv("/capstone/casaschools/precipitation/curcentury45.csv")
  
  century_totals_combined45 <- century_totals_combined45[, -1]
 
- write.csv(century_totals_combined, "/capstone/casaschools/precipitation/century_totals_combined45.csv")
+ write.csv(century_totals_combined45, "/capstone/casaschools/precipitation/century_totals_combined45.csv")
 ```
 
 ```{r}
@@ -110,7 +110,62 @@ current45 <- read.csv("/capstone/casaschools/precipitation/curcentury45.csv")
  
  year_totals_combined45 <- year_totals_combined45[, -1]
 
- write.csv(century_totals_combined, "/capstone/casaschools/precipitation/year_totals_combined45.csv")
+ write.csv(year_totals_combined45, "/capstone/casaschools/precipitation/year_totals_combined45.csv")
  
+```
+
+# join scenarios
+
+```{r}
+century_totals_combined <- read.csv("/capstone/casaschools/precipitation/century_totals_combined.csv")
+
+century_totals_combined45 <- read.csv("/capstone/casaschools/precipitation/century_totals_combined45.csv")
+
+century_totals_combined <- century_totals_combined[, -1]
+century_totals_combined45 <- century_totals_combined45[, -1]
+
+century_totals_combined <- century_totals_combined %>% 
+  mutate(scenario = "High Emissions")
+
+century_totals_combined45 <- century_totals_combined45 %>% 
+  mutate(scenario = "Low Emissions")
+
+century_all <- rbind(century_totals_combined, century_totals_combined45)
+
+ write.csv(century_all, "/capstone/casaschools/precipitation/century_all.csv")
+ 
+```
+
+```{r}
+year_totals_combined <- read.csv("/capstone/casaschools/precipitation/year_totals_combined.csv")
+
+year_totals_combined45 <- read.csv("/capstone/casaschools/precipitation/year_totals_combined45.csv")
+
+year_totals_combined <- year_totals_combined[, -1]
+year_totals_combined45 <- year_totals_combined45[, -1]
+
+year_totals_combined <- year_totals_combined %>% 
+  mutate(scenario = "High Emissions")
+
+year_totals_combined45 <- year_totals_combined45 %>% 
+  mutate(scenario = "Low Emissions")
+
+years_all <- rbind(year_totals_combined, year_totals_combined45)
+
+#add back in zeros
+years_all_zeros <- years_all %>% 
+  group_by(CDSCode, year, total, century, scenario) %>% 
+  summarise(total = sum(total)) %>% 
+  mutate(CDSCode = as.character(CDSCode),
+         count = nchar(CDSCode),
+         # some rows are missing 0's in front
+         CDSCode = ifelse(count == 13, paste0("0", CDSCode),
+                              CDSCode))
+
+#write.csv(years_all, "/capstone/casaschools/precipitation/years_all.csv")
+
+write.csv(years_all_zeros, "/capstone/casaschools/precipitation/years_all_zeros.csv")
+
+write.csv(years_all_zeros, "/capstone/casaschools/shiny_dashboard/data/precipitation/years_all_zeros.csv")
 ```
 
