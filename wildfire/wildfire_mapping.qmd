@@ -53,7 +53,7 @@ whp_palette <- colorFactor(palette = whp_colors,
                            domain = values(whp_school),
                            na.color = "transparent")
 
-# leaflet map of wildfire hazard potential for 2023
+# mapping them together
 leaflet() %>% 
   
   # add topo basemap
@@ -63,7 +63,10 @@ leaflet() %>%
   addProviderTiles(providers$Esri.WorldImagery, group = "satellite imagery") %>%
   
   # add cropped wildfire hazard potential raster for 2023 
-  addRasterImage(whp_school, colors = whp_palette, opacity = .7, group = "wildfire hazard potential") %>%
+  addRasterImage(whp_school, colors = whp_palette, opacity = .7, group = "wildfire hazard 2023") %>%
+  
+   # add cropped wildfire hazard potential raster for 2012
+  addRasterImage(whp_school2012, colors = whp_palette, opacity = .7, group = "wildfire hazard 2012") %>% 
   
   # add school buffer polygon
   addPolygons(data = dp, color = "black", fill = FALSE, 
@@ -80,9 +83,13 @@ leaflet() %>%
   
   # add option to toggle data on and off
   addLayersControl(
-    overlayGroups = c("wildfire hazard potential", "school community area", "school point"),
+    overlayGroups = c("wildfire hazard 2023", "wildfire hazard 2012", "school community area", "school point"),
     baseGroups = c("topographic map", "satellite imagery"),
-    options = layersControlOptions(collapsed = FALSE))
+    options = layersControlOptions(collapsed = FALSE)) %>% 
+  
+  # toggle the 2012 whp data off by default
+  hideGroup("wildfire hazard 2012")
+  
 ```
 
 ```{r}
