@@ -354,25 +354,18 @@ heat_rcp85_2000_2064 <- rbind(heat_2000_2005,
 heat_rcp85_2000_2064 <- heat_rcp85_2000_2064 %>%
   select(-X)
 
-heat_rcp85_2000_2064_zeros <- heat_rcp85_2000_2064 %>% 
-  group_by(CDSCode, year, total) %>% 
-  mutate(CDSCode = as.character(CDSCode),
-         count = nchar(CDSCode),
-         # some rows are missing 0's in front
-         CDSCode = ifelse(count == 13, paste0("0", CDSCode),
-                              CDSCode))
-
 ### export csv to shinydashboard data
-<<<<<<< HEAD:extreme_heat/schools_extreme_heat_days.qmd
 write.csv(heat_rcp85_2000_2064, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064.csv")
 
 write.csv(heat_rcp85_2000_2064_zeros, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064_zeros.csv")
-=======
+
 write.csv(heat_rcp85_2000_2064, "/capstone/casaschools/extreme_heat/heat_rcp85_2000_20064.csv")
 ```
 
 
 ```{r}
+ options(scipen = 999)
+
 # Combine rcp4.5 & rcp8.5
 # Load RCP 4.5
 rcp45 <- read_csv("/capstone/casaschools/extreme_heat/heat_rcp45_2000_20064.csv")
@@ -394,8 +387,19 @@ rcp85 <- rcp85 %>%
 
 # Join datasets
 extreme_heat <- bind_rows(rcp45, rcp85)
+
+
+extreme_heat_zeros <- extreme_heat %>% 
+  group_by(CDSCode, year, total, scenario) %>% 
+  mutate(CDSCode = as.character(CDSCode),
+         count = nchar(CDSCode),
+         # some rows are missing 0's in front
+         CDSCode = ifelse(count == 13, paste0("0", CDSCode),
+                              CDSCode))
+
 # Export dataset into shiny dashboard
-write.csv(extreme_heat,"/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
->>>>>>> ce6707a1da5598a6a6cc66519caf7d89531af433:extreme_heat/schools_extreme_heat_days_rcp85.qmd
+#write.csv(extreme_heat,"/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+
+write.csv(extreme_heat,"/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat_zeros.csv")
 ```
 
