@@ -11,6 +11,7 @@ library(tidyr)
 library(sf)
 library(lubridate)
 library(caladaptr)
+library(tidyverse)
 ```
 
 ```{r}
@@ -362,8 +363,39 @@ heat_rcp85_2000_2064_zeros <- heat_rcp85_2000_2064 %>%
                               CDSCode))
 
 ### export csv to shinydashboard data
+<<<<<<< HEAD:extreme_heat/schools_extreme_heat_days.qmd
 write.csv(heat_rcp85_2000_2064, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064.csv")
 
 write.csv(heat_rcp85_2000_2064_zeros, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064_zeros.csv")
+=======
+write.csv(heat_rcp85_2000_2064, "/capstone/casaschools/extreme_heat/heat_rcp85_2000_20064.csv")
+```
+
+
+```{r}
+# Combine rcp4.5 & rcp8.5
+# Load RCP 4.5
+rcp45 <- read_csv("/capstone/casaschools/extreme_heat/heat_rcp45_2000_20064.csv")
+
+# Load RCP 8.5
+rcp85 <- read_csv("/capstone/casaschools/extreme_heat/heat_rcp85_2000_20064.csv")
+
+# Add extra columns to distinguish them
+rcp45 <- rcp45 %>% 
+  mutate(scenario = "Intermediate scenario",
+         total = round(total)) %>% 
+  select(c(CDSCode, year, total, scenario))
+
+
+rcp85 <- rcp85 %>% 
+  mutate(scenario = "Business as usual",
+         total = round(total)) %>% 
+  select(c(CDSCode, year, total, scenario))
+
+# Join datasets
+extreme_heat <- bind_rows(rcp45, rcp85)
+# Export dataset into shiny dashboard
+write.csv(extreme_heat,"/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+>>>>>>> ce6707a1da5598a6a6cc66519caf7d89531af433:extreme_heat/schools_extreme_heat_days_rcp85.qmd
 ```
 
