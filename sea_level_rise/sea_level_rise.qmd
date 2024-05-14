@@ -123,33 +123,44 @@ dp_slr_clip <- st_intersection(dp, dp_slr_poly)
 # plot the extent of sea level rise
 leaflet() %>% 
   
-  # add basemap
-  addProviderTiles(providers$Esri.WorldTopoMap) %>% 
+  # add topo basemap
+  addProviderTiles(providers$Esri.WorldTopoMap, group = "topographic map") %>%
+  
+  # add imagery basemap
+  addProviderTiles(providers$Esri.WorldImagery, group = "satellite imagery") %>% 
   
   # add clipped sea level rise polygon
-  addPolygons(data = dp_slr_clip, fillColor = "blue",
-              fillOpacity = 1, stroke = FALSE, group = "school sea level rise extent") %>% 
+  addPolygons(data = dp_slr_clip, fillColor = "cornflowerblue",
+              fillOpacity = .8, stroke = FALSE, group = "school sea level rise extent") %>% 
   
   # add overlap sea level rise polygons
-  addPolygons(data = dp_slr_poly, fillColor = "seagreen", 
+  addPolygons(data = dp_slr_poly, fillColor = "cornflowerblue", 
               fillOpacity = .8, stroke = FALSE, group = "county sea level rise extent") %>% 
   
   # add school buffer polygon
   addPolygons(data = dp, color = "black", fill = FALSE,
-              weight = 2, group = "school area") %>% 
+              weight = 2, group = "school community area") %>% 
   
   # add school point
   addCircleMarkers(data = dp_point, color = "orange", stroke = FALSE,
                    weight = 2, radius = 5, fillOpacity = 1, group = "school point") %>% 
   
-   # add option to toggle data on and off
+  # # add legend for sea level rise
+  # addLegend("bottomright", colors = rev(whp_colors), labels = rev(labels),
+  #           title = "wildfire hazard potential", opacity = 1) %>% 
+  
+  # add option to toggle data on and off
   addLayersControl(
     overlayGroups = c("school sea level rise extent", "county sea level rise extent", 
-                      "school area", "school point"),
-    options = layersControlOptions(collapsed = FALSE)) %>% 
+                      "school community area", "school point"),
+    baseGroups = c("topographic map", "satellite imagery")) %>% 
+    #options = layersControlOptions(collapsed = TRUE)) %>%
   
+  # hide the "county sea level rise extent" group by default
+  hideGroup("county sea level rise extent") %>% 
+
   # set zoom to be the center of the school
-  setView(lng = dp_point$Longitude, lat = dp_point$Latitude, zoom = 12)
+  setView(lng = dp_point$Longitude, lat = dp_point$Latitude, zoom = 13)
 ```
 
 
