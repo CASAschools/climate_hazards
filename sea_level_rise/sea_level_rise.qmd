@@ -11,7 +11,7 @@ We are using data from the USGS Coastal Storm Modeling system, or CoSMoS. The da
 
 We have 14 different shapefiles for sea level rise. To read them and combine them into one sf object, we need to write a function. Not all of the shapefiles are on the same crs, and we want all of them to be on the same crs as the ca schools layer. So, we're just going to convert them all to the crs of the schools buffers. Each of the layers also has different amounts of columns, so we're only going to select the geometry column in order to be able to combine all of the shapefiles into one. The function reads in a shapefile, converts the coordinate reference system, and then drops all columns except for the geometry column. Then, we use lapply to apply the function to each shapefile in our list, returning a list. Then, we merge all of the shapefiles into one. The sea level rise polygons extend out from the coast, so we'll crop them to the coastline
 
-```{r}
+```{r, message = FALSE}
 # read in clipped CA school buffers
 ca_schools_clip <- st_read("/capstone/casaschools/schools_data/schools_buffer_clip",
                       quiet = TRUE)
@@ -47,6 +47,11 @@ ca_slr <- do.call(rbind, slr_shapefiles)
 
 # crop ca_slr to the coastline of California to exclude slr data in the ocean
 ca_slr <- st_intersection(ca_slr, ca_boundary)
+
+ca_slr <- st_transform(ca_slr, crs = 4326)
+
+# write the output to the server
+#st_write(ca_slr, "/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr.shp")
 ```
 
 ### calculating sea level rise for the whole state
@@ -153,8 +158,8 @@ leaflet() %>%
   addLayersControl(
     overlayGroups = c("school sea level rise extent", "county sea level rise extent", 
                       "school community area", "school point"),
-    baseGroups = c("topographic map", "satellite imagery")) %>% 
-    #options = layersControlOptions(collapsed = TRUE)) %>%
+    baseGroups = c("topographic map", "satellite imagery"),
+    options = layersControlOptions(collapsed = FALSE)) %>% 
   
   # hide the "county sea level rise extent" group by default
   hideGroup("county sea level rise extent") %>% 
