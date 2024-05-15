@@ -19,7 +19,7 @@ library(RColorBrewer)
 
 ```{r}
 # read in FEMA data for entire state
-FEMA_state <- st_read("/capstone/casaschools/fema-data/NFHL_06_20240401/NFHL_06_20240401.gdb",
+FEMA_state <- st_read("/capstone/casaschools/flooding /NFHL_06_20240401/NFHL_06_20240401.gdb",
                       layer = "S_FLD_HAZ_AR",
                       quiet = TRUE)
 ```
@@ -73,7 +73,7 @@ FEMA_schools_join <- FEMA_schools %>%
 
 ```{r}
 # join high risk with schools to find percentage of area
-join_test <- left_join(schools %>% as.data.frame(),
+join_flood_schools <- left_join(schools %>% as.data.frame(),
                        FEMA_schools_join %>% as.data.frame(),
                        by = "FedID", keep = FALSE, multiple = "first") %>%
   mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
@@ -82,6 +82,16 @@ join_test <- left_join(schools %>% as.data.frame(),
   mutate(FEMA_percent = (FEMA_area / area) * 100) %>% # calculate sea level rise inundation percentage
   st_sf(sf_column_name = "geometry.x")
 ```
+
+```{r}
+# select relevant information and export to server for hazard summary calculation
+flooding_schools <- join_flood_schools %>% 
+  select(CDSCode, SchoolName, FEMA_percent) %>% 
+  st_drop_geometry()
+
+write_csv(flooding_schools, "/capstone/casaschools/hazard_summary/individual_tables/flood_schools.csv")
+```
+
 
 ### testing
 
