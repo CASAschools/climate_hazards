@@ -382,13 +382,13 @@ rcp85 <- read_csv("/capstone/casaschools/extreme_heat/heat_rcp85_2000_20064.csv"
 
 # Add extra columns to distinguish them
 rcp45 <- rcp45 %>% 
-  mutate(scenario = "High greenhouse gas emissions",
+  mutate(scenario = "Reduced greenhouse gas emissions",
          total = round(total)) %>% 
   select(c(CDSCode, year, total, scenario))
 
 
 rcp85 <- rcp85 %>% 
-  mutate(scenario = "Reduce greenhouse gas emissions",
+  mutate(scenario = "High greenhouse gas emissions",
          total = round(total)) %>% 
   select(c(CDSCode, year, total, scenario))
 
@@ -413,14 +413,17 @@ Each school has a unique 14 digit associated CDSCode. When working with the Cali
 ```{r}
 options(scipen = 999)
 
+# remove geometry of school points
+school_points <- school_points %>% st_drop_geometry()
+
 # Merge extreme heat with school names
-extreme_heat <- merge(extreme_heat, school_points, by = "CDSCode")
+extreme_heat <- left_join(extreme_heat, school_points, by = "CDSCode") 
 
 # Check if 10,008 schools are there
 length(unique(extreme_heat$CDSCode))
 
 # Export csv
-extreme_heat <- read_csv("/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+write.csv(extreme_heat, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
 
 ```
 
