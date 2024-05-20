@@ -193,7 +193,8 @@ precip <- precip %>% mutate(CDSCode_old = as.character(CDSCode),
          # If 13 add a 0 in front
          CDSCode = ifelse(count == 13, paste0("0",CDSCode_old),
                           CDSCode_old)) %>% 
-  select(-c(CDSCode_old, count, X))
+  select(-c(CDSCode_old, count, X)) %>% 
+  filter(year > 2005)
 
 # merge with school data
 school_points <- st_read("/capstone/casaschools/schools_data/California_Schools_2022-23/California_Schools_2022-23.shp") %>%

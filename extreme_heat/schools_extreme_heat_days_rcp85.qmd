@@ -403,7 +403,9 @@ extreme_heat <- extreme_heat %>%
          # If 13 add a 0 in front
          CDSCode = ifelse(count == 13, paste0("0",CDSCode_old),
                           CDSCode_old)) %>% 
-  select(-c(CDSCode_old, count))
+  select(-c(CDSCode_old, count)) %>% 
+  filter(year > 2005)
+
 ```
 
 
@@ -425,6 +427,8 @@ length(unique(extreme_heat$CDSCode))
 # Export csv
 write.csv(extreme_heat, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
 
+
+ex_h <- read.csv("/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
 ```
 
 
