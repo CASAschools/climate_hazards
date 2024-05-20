@@ -5,6 +5,7 @@ format: html
 
 ```{r}
 library(tidyverse)
+library(sf)
 ```
 
 ```{r}
@@ -177,6 +178,40 @@ write.csv(years_all_zeros, "/capstone/casaschools/precipitation/years_all_zeros.
 
 write.csv(years_all_zeros, "/capstone/casaschools/shiny_dashboard/data/precipitation/years_all_zeros.csv")
 ```
+
+# Edit for dashboard
+```{r}
+precip <- read.csv("/capstone/casaschools/shiny_dashboard/data/precipitation/years_all_zeros.csv")
+
+# Change the scenario names
+precip <- precip %>% mutate(scenario = ifelse(scenario == "High Emissions","High greenhouse gas emissions","Reduced greenhouse gas emissions"))
+
+# add zero
+precip <- precip %>% mutate(CDSCode_old = as.character(CDSCode),
+         # Count how many characters
+         count = nchar(CDSCode),
+         # If 13 add a 0 in front
+         CDSCode = ifelse(count == 13, paste0("0",CDSCode_old),
+                          CDSCode_old)) %>% 
+  select(-c(CDSCode_old, count, X))
+
+# merge with school data
+school_points <- st_read("/capstone/casaschools/schools_data/California_Schools_2022-23/California_Schools_2022-23.shp") %>%
+  st_drop_geometry() %>% 
+  filter(Status == "Active") %>% 
+  select(c(CDSCode, City, DistrictNa, SchoolName))
+
+# Merge data 
+extreme_precip <- left_join(precip,school_points, by = "CDSCode")
+
+# export 
+
+write.csv(extreme_precip, "/capstone/casaschools/shiny_dashboard/data/precipitation/extreme_precipitation.csv")
+
+
+```
+
+
 
 # RCP 8.5 2030 - 2050 for hazard Metric
 
