@@ -1,7 +1,6 @@
 ```{r, message = FALSE, warning = FALSE}
 library(sf)
 library(tidyverse)
-library(tmap)
 library(leaflet)
 ```
 
@@ -20,14 +19,14 @@ ca_schools_clip <- st_read("/capstone/casaschools/schools_data/schools_buffer_cl
 ca_boundary <- st_read("/capstone/casaschools/schools_data/CA_boundary/CA_boundary.shp",
                        quiet = TRUE)
 
-# read in sea level rise polygons
-ca_slr_files <- list.files("/capstone/casaschools/sea_level_rise/raw_data/cosmos/all", pattern = "*.shp", full.names = TRUE)
+# list 2050 sea level rise polygons
+ca_slr_files <- list.files("/capstone/casaschools/sea_level_rise/raw_data/cosmos/2050", pattern = "*.shp", full.names = TRUE)
 
-# read in files and transform to the crs of the california schools buffers
-read_transform_crs <- function(ca_slr_files, target_crs = 3857) {
+# function to read in sea level rise files and transform the crs to the crs of the schools 
+read_transform_crs <- function(slr_files, target_crs = 3857) {
   
   # read in shapefile
-  shapefile <- st_read(ca_slr_files, quiet = TRUE)
+  shapefile <- st_read(slr_files, quiet = TRUE)
   
   # convert crs of the shapefile to the target crs
   shapefile <- st_transform(shapefile, crs = target_crs)
@@ -39,7 +38,7 @@ read_transform_crs <- function(ca_slr_files, target_crs = 3857) {
   return(st_sf(geometry = geometry))
 }
 
-# apply the function to each shapefile
+# apply the function to each shapefile in the 2050 data
 slr_shapefiles <- lapply(ca_slr_files, read_transform_crs)
 
 # merge all shapefiles into one sf object
@@ -47,11 +46,6 @@ ca_slr <- do.call(rbind, slr_shapefiles)
 
 # crop ca_slr to the coastline of California to exclude slr data in the ocean
 ca_slr <- st_intersection(ca_slr, ca_boundary)
-
-ca_slr <- st_transform(ca_slr, crs = 4326)
-
-# write the output to the server
-#st_write(ca_slr, "/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr.shp")
 ```
 
 ### calculating sea level rise for the whole state
@@ -59,8 +53,8 @@ ca_slr <- st_transform(ca_slr, crs = 4326)
 Next, we are going to find the intersections. We are going to find the area of intersection of the sea level rise polygon on each school district. Then, we are going to calculate the areas using st_area, and join the two dataframes together. The units are in square meters. The first line of code using st_intersection creates new polygons that are the overlap between each school buffer and the coastal flooding area. Each intersection polygon is associated with a specific school ID (CDSCode), so polygons are duplicated where they intersect with multiple school buffer areas. Additionally, multiple orginal sea level rise polygons can fall within one school buffer. For this reason, we need to sum all of the sea level rise areas associated with each school ID to find the total area of each school buffer affected by sea level rise and a coastal storm.
 
 ```{r}
-# find the intersections
-ca_schools_slr <- st_intersection(ca_schools_clip, ca_slr)
+# find the intersections between school buffers and 
+ca_schools_slr <- st_intersection(ca_schools_clip, ca_slr_2050)
 
 # find the area of each intersection polygon
 ca_schools_slr$slr_area <- st_area(ca_schools_slr)
@@ -96,14 +90,72 @@ slr_schools <- slr_ca_join %>%
 #write_csv(slr_schools, "/capstone/casaschools/hazard_summary/individual_tables/schools_slr.csv")
 ```
 
-
 ### Mapping sea level rise within school buffers
+
+The 2050 sea level rise levels are based off of 2000 levels, so we'll read in and simplify polygons for mapping for the 2000 sea levels with a 100 year storm
+
+```{r}
+# list 2000 sea level rise polygons
+ca_slr_files_2000 <- list.files("/capstone/casaschools/sea_level_rise/raw_data/cosmos/2000", pattern = "*.shp", full.names = TRUE)
+
+# apply the function to each shapefile in the 2050 data
+slr_shapefiles_2000 <- lapply(ca_slr_files_2000, read_transform_crs)
+
+# merge all shapefiles into one sf object
+ca_slr_2000 <- do.call(rbind, slr_shapefiles_2000)
+
+# crop ca_slr_2000 to the coastline of California to exclude slr data in the ocean
+ca_slr_2000 <- st_intersection(ca_slr_2000, ca_boundary)
+
+# simplify vertices
+ca_slr_2000_simple <- st_simplify(ca_slr_2000, dTolerance = 10)
+
+# transform crs for mapping with leaflet
+ca_slr_2000_simple <- st_transform(ca_slr_2000_simple, crs = 4326) %>% 
+  st_make_valid()
+
+# remove polygons with empty geometries
+ca_slr_2000_simple <- ca_slr_2000_simple[!st_is_empty(ca_slr_2000_simple), ]
+
+# write the output to the server
+#st_write(ca_slr, "/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr_2000_simple.shp")
+```
+
+
+To map sea level rise and improve the load times, we'll simplify the vertices and remove empty geometries
+
+```{r}
+# transform crs for mapping with leaflet
+ca_slr <- st_transform(ca_slr, crs = 4326)
+
+# write the output to the server
+#st_write(ca_slr, "/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr.shp")
+
+# read in California sea level rise polygons
+ca_slr <- st_read("/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr.shp")
+
+# simplify vertices
+ca_slr_simple <- st_simplify(ca_slr, dTolerance = 10)
+
+# remove polygons with empty geometries
+ca_slr_simple <- ca_slr_simple[!st_is_empty(ca_slr_simple), ]
+
+# write output to the server
+#st_write(ca_slr_simple, "/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr_simple.shp")
+
+ca_slr_simple <- st_read("/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr_simple.shp")
+```
+
 
 ```{r}
 # load full ca_schools buffers
 schools_buffers <- st_read("/capstone/casaschools/schools_data/schools_buffer/",
                         quiet = TRUE)
+
+# load California slr polygons
+ca_slr_simple <- st_read("/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr_simple.shp")
 ```
+### mapping the 2050 projections for sea level rise and a 100 year storm
 
 ```{r}
 # filter for one school
@@ -117,13 +169,9 @@ dp_point <- dp %>%
 # transform layers needed to WGS 1984 for mapping
 dp <- st_transform(dp, crs = 4326)
 dp_point <- st_transform(dp_point, crs = 4326)
-ca_slr <- st_transform(ca_slr, crs = 4326)
 
-# select the sea level rise polygons that overlap
-dp_slr_poly <- ca_slr[dp, ]
-
-# select sea level rise polygons that intersect
-dp_slr_clip <- st_intersection(dp, dp_slr_poly)
+# clip the sea level rise polygons to the specified school buffer
+dp_slr_clip <- st_intersection(dp, ca_slr_simple)
 
 # plot the extent of sea level rise
 leaflet() %>% 
@@ -138,9 +186,63 @@ leaflet() %>%
   addPolygons(data = dp_slr_clip, fillColor = "cornflowerblue",
               fillOpacity = .8, stroke = FALSE, group = "school sea level rise extent") %>% 
   
-  # add overlap sea level rise polygons
-  addPolygons(data = dp_slr_poly, fillColor = "cornflowerblue", 
-              fillOpacity = .8, stroke = FALSE, group = "county sea level rise extent") %>% 
+  # add school buffer polygon
+  addPolygons(data = dp, color = "black", fill = FALSE,
+              weight = 2, group = "school community area") %>% 
+  
+  # add school point
+  addCircleMarkers(data = dp_point, color = "orange", stroke = FALSE,
+                   weight = 2, radius = 5, fillOpacity = 1, group = "school point") %>% 
+  
+  # add legend for sea level rise
+  addLegend("bottomright", colors = "cornflowerblue", labels = "sea level rise extent",
+            title = "", opacity = 1) %>%
+  
+  # add option to toggle data on and off
+  addLayersControl(
+    overlayGroups = c("school sea level rise extent", "school community area", "school point"),
+    baseGroups = c("topographic map", "satellite imagery"),
+    options = layersControlOptions(collapsed = FALSE)) %>% 
+
+  # set zoom to be the center of the school
+  setView(lng = dp_point$Longitude, lat = dp_point$Latitude, zoom = 13)
+```
+
+### mapping the 2000 projections for sea level rise and a 100 year storm
+
+```{r}
+# filter for one school
+dp <- schools_buffers %>% 
+  filter(SchoolName == "Dos Pueblos Senior High")
+
+# create school point as the centroid of the buffer
+dp_point <- dp %>% 
+  st_centroid()
+
+# transform layers needed to WGS 1984 for mapping
+dp <- st_transform(dp, crs = 4326)
+dp_point <- st_transform(dp_point, crs = 4326)
+
+# clip the sea level rise polygons to the specified school buffer
+dp_slr_clip <- st_intersection(dp, ca_slr_2000_simple)
+dp_slr_clip_2050 <- st_intersection(dp, ca_slr_simple)
+
+# plot the extent of sea level rise
+leaflet() %>% 
+  
+  # add topo basemap
+  addProviderTiles(providers$Esri.WorldTopoMap, group = "topographic map") %>%
+  
+  # add imagery basemap
+  addProviderTiles(providers$Esri.WorldImagery, group = "satellite imagery") %>% 
+  
+  # add clipped sea level rise polygon
+  addPolygons(data = dp_slr_clip, fillColor = "cornflowerblue",
+              fillOpacity = .8, stroke = FALSE, group = "slr 2000") %>% 
+  
+  # add clipped sea level rise polygon
+  addPolygons(data = dp_slr_clip_2050, fillColor = "cornflowerblue",
+              fillOpacity = .8, stroke = FALSE, group = "slr 2050") %>% 
   
   # add school buffer polygon
   addPolygons(data = dp, color = "black", fill = FALSE,
@@ -150,22 +252,17 @@ leaflet() %>%
   addCircleMarkers(data = dp_point, color = "orange", stroke = FALSE,
                    weight = 2, radius = 5, fillOpacity = 1, group = "school point") %>% 
   
-  # # add legend for sea level rise
-  # addLegend("bottomright", colors = rev(whp_colors), labels = rev(labels),
-  #           title = "wildfire hazard potential", opacity = 1) %>% 
+  # add legend for sea level rise
+  addLegend("bottomright", colors = "cornflowerblue", labels = "sea level rise extent",
+            title = "", opacity = 1) %>%
   
   # add option to toggle data on and off
   addLayersControl(
-    overlayGroups = c("school sea level rise extent", "county sea level rise extent", 
-                      "school community area", "school point"),
+    overlayGroups = c("slr 2000", "slr 2050", "school community area", "school point"),
     baseGroups = c("topographic map", "satellite imagery"),
     options = layersControlOptions(collapsed = FALSE)) %>% 
-  
-  # hide the "county sea level rise extent" group by default
-  hideGroup("county sea level rise extent") %>% 
 
   # set zoom to be the center of the school
   setView(lng = dp_point$Longitude, lat = dp_point$Latitude, zoom = 13)
 ```
-
 
