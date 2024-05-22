@@ -19,7 +19,7 @@ library(RColorBrewer)
 
 ```{r}
 # read in FEMA data for entire state
-FEMA_state <- st_read("/capstone/casaschools/fema-data/NFHL_06_20240401/NFHL_06_20240401.gdb",
+FEMA_state <- st_read("/capstone/casaschools/flooding/NFHL_06_20240401/NFHL_06_20240401.gdb",
                       layer = "S_FLD_HAZ_AR",
                       quiet = TRUE)
 ```
@@ -53,12 +53,12 @@ schools_high <- schools_high %>% filter(flood_risk=="High Risk")
 #st_write(schools_high, "/capstone/casaschools/fema-data/intermediate_layers/fema_high_union.shp")
 
 #clip school buffers to flood intersections
-FEMA_schools <- st_intersection(schools, schools_high)
+FEMA_schools_high <- st_intersection(schools, schools_high)
 ```
 
 ```{r}
 #find areas of FEMA areas in school intersected polygons
-FEMA_schools$FEMA_area <- st_area(FEMA_schools)
+FEMA_schools_high$FEMA_area <- st_area(FEMA_schools_high)
 
 #find area of school district boundaries
 schools$area <- st_area(schools)
@@ -67,13 +67,13 @@ schools$area <- st_area(schools)
 
 ```{r}
 #select neccessary columns
-FEMA_schools_join <- FEMA_schools %>% 
+FEMA_schools_join <- FEMA_schools_high %>% 
   select(FedID, FEMA_area)
 ```
 
 ```{r}
 # join high risk with schools to find percentage of area
-join_test <- left_join(schools %>% as.data.frame(),
+join_flood_schools <- left_join(schools %>% as.data.frame(),
                        FEMA_schools_join %>% as.data.frame(),
                        by = "FedID", keep = FALSE, multiple = "first") %>%
   mutate(area = as.numeric(area), # convert areas to numeric, dropping the units
@@ -83,10 +83,19 @@ join_test <- left_join(schools %>% as.data.frame(),
   st_sf(sf_column_name = "geometry.x")
 ```
 
+```{r}
+# select relevant information and export to server for hazard summary calculation
+flooding_schools <- join_flood_schools %>% 
+  select(CDSCode, SchoolName, FEMA_percent) %>% 
+  st_drop_geometry()
+
+write_csv(flooding_schools, "/capstone/casaschools/hazard_summary/individual_tables/flood_schools.csv")
+```
+
 ### testing
 
 ```{r}
-fema_high_union <- st_read("/capstone/casaschools/fema-data/intermediate_layers/fema_high_union.shp", quiet = TRUE)
+fema_high_union <- st_read("/capstone/casaschools/flooding/intermediate_layers/fema_high_union.shp", quiet = TRUE)
 
 plot(fema_high_union)
 

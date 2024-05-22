@@ -1,0 +1,72 @@
+
+
+
+
+```{r}
+# Load library
+library(tidyverse)
+```
+
+
+```{r}
+# Load RCP 4.5
+rcp45 <- read_csv("/capstone/casaschools/extreme_heat/heat_rcp45_2000_20064.csv")
+
+# Load RCP 8.5
+rcp85 <- read_csv("/capstone/casaschools/extreme_heat/heat_rcp85_2000_20064.csv")
+
+# Load school point data
+school_points <- st_read("/capstone/casaschools/schools_data/California_Schools_2022-23/California_Schools_2022-23.shp")
+
+# Filter to schools are active and remove unnecessary columns
+school_points <- school_points %>% filter(Status == "Active") %>% 
+  select(c(CDSCode, DistrictNa, SchoolName))
+```
+
+```{r}
+# Add extra columns to distinguish them
+rcp45 <- rcp45 %>% 
+  mutate(scenario = "Reduced greenhouse gas emissions",
+         total = round(total)) %>% 
+  select(c(CDSCode, year, total, scenario))
+
+
+rcp85 <- rcp85 %>% 
+  mutate(scenario = "High greenhouse gas emissions",
+         total = round(total)) %>% 
+  select(c(CDSCode, year, total, scenario))
+
+# Join datasets
+extreme_heat <- bind_rows(rcp45, rcp85)
+
+extreme_heat <- extreme_heat %>% 
+  # Transform CDSCode as character
+  mutate(CDSCode_old = as.character(CDSCode),
+         # Count how many characters
+         count = nchar(CDSCode),
+         # If 13 add a 0 in front
+         CDSCode = ifelse(count == 13, paste0("0",CDSCode_old),
+                          CDSCode_old)) %>% 
+  select(-c(CDSCode_old, count)) %>% 
+  filter(year > 2005)
+
+```
+
+
+```{r}
+# remove geometry of school points
+school_points <- school_points %>% st_drop_geometry()
+
+# Merge extreme heat with school names
+extreme_heat <- left_join(extreme_heat, school_points, by = "CDSCode") 
+
+# Check if 10,008 schools are there
+length(unique(extreme_heat$CDSCode))
+
+# Export csv
+write.csv(extreme_heat, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+
+
+ex_h <- read.csv("/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+```
+
