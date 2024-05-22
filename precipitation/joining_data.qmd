@@ -5,6 +5,7 @@ format: html
 
 ```{r}
 library(tidyverse)
+library(sf)
 ```
 
 ```{r}
@@ -12,7 +13,7 @@ options(scipen = 999)
 
 current85 <- read.csv("/capstone/casaschools/precipitation/curcentury85.csv")
  mid85 <- read.csv("/capstone/casaschools/precipitation/midcentury85.csv")
- historic <- read.csv("/capstone/casaschools/precipitation/historic85.csv")
+ #historic <- read.csv("/capstone/casaschools/precipitation/historic85.csv")
  
  #add in century column
  
@@ -20,7 +21,7 @@ current85 <- read.csv("/capstone/casaschools/precipitation/curcentury85.csv")
  
  mid85 <- mid85 %>%mutate(century = "Mid")
  
- historic <- historic %>%  mutate(century = "Historic")
+ #historic <- historic %>%  mutate(century = "Historic")
  
  #rename total columns
  
@@ -28,15 +29,17 @@ current85 <- read.csv("/capstone/casaschools/precipitation/curcentury85.csv")
  
  mid85 <- mid85 %>%rename(total = total_35_64)
  
- historic <- historic %>%rename(total = total_00_06)
+ #historic <- historic %>%rename(total = total_00_06)
  
 
- century_totals_combined <- rbind(mid85, current85, historic)
+ # century_totals_combined <- rbind(mid85, current85, historic)
+ 
+ century_totals_combined <- rbind(mid85, current85)
  
  century_totals_combined <- century_totals_combined[, -1]
 
  write.csv(century_totals_combined, "/capstone/casaschools/precipitation/century_totals_combined.csv")
-
+ write.csv(century_totals_combined, "/capstone/casaschools/shiny_dashboard/data/precipitation/century_totals_combined.csv")
 
 ```
 
@@ -46,7 +49,7 @@ current85 <- read.csv("/capstone/casaschools/precipitation/curcentury85.csv")
 
  current85_year <- read.csv("/capstone/casaschools/precipitation/curcentury85_year.csv")
  mid85_year <- read.csv("/capstone/casaschools/precipitation/midcentury85_year.csv")
- historic_year <- read.csv("/capstone/casaschools/precipitation/historic85_year.csv")
+ #historic_year <- read.csv("/capstone/casaschools/precipitation/historic85_year.csv")
  
  current85_year <- current85_year %>%
    mutate(century = "Current")
@@ -54,13 +57,16 @@ current85 <- read.csv("/capstone/casaschools/precipitation/curcentury85.csv")
  mid85_year <- mid85_year %>%
    mutate(century = "Mid")
  
- historic_year <- historic_year %>% 
-   mutate(century = "Historic")
- year_totals_combined <- rbind(mid85_year, current85_year, historic_year)
+ #historic_year <- historic_year %>% 
+   #mutate(century = "Historic")
+ #year_totals_combined <- rbind(mid85_year, current85_year, historic_year)
+ 
+ year_totals_combined <- rbind(mid85_year, current85_year)
  
  year_totals_combined <- year_totals_combined[, -1]
 
- write.csv(century_totals_combined, "/capstone/casaschools/precipitation/year_totals_combined.csv")
+ write.csv( year_totals_combined, "/capstone/casaschools/precipitation/year_totals_combined.csv")
+  write.csv( year_totals_combined, "/capstone/casaschools/shiny_dashboard/data/precipitation/year_totals_combined.csv")
  
 ```
 
@@ -92,6 +98,8 @@ current45 <- read.csv("/capstone/casaschools/precipitation/curcentury45.csv")
  century_totals_combined45 <- century_totals_combined45[, -1]
 
  write.csv(century_totals_combined45, "/capstone/casaschools/precipitation/century_totals_combined45.csv")
+ write.csv(century_totals_combined45, "/capstone/casaschools/shiny_dashboard/data/precipitation/century_totals_combined45.csv")
+ 
 ```
 
 ```{r}
@@ -111,6 +119,7 @@ current45 <- read.csv("/capstone/casaschools/precipitation/curcentury45.csv")
  year_totals_combined45 <- year_totals_combined45[, -1]
 
  write.csv(year_totals_combined45, "/capstone/casaschools/precipitation/year_totals_combined45.csv")
+ write.csv(year_totals_combined45, "/capstone/casaschools/shiny_dashboard/data/precipitation/year_totals_combined45.csv")
  
 ```
 
@@ -133,6 +142,7 @@ century_totals_combined45 <- century_totals_combined45 %>%
 century_all <- rbind(century_totals_combined, century_totals_combined45)
 
  write.csv(century_all, "/capstone/casaschools/precipitation/century_all.csv")
+write.csv(century_all, "/capstone/casaschools/shiny_dashboard/data/precipitation/century_all.csv")
  
 ```
 
@@ -167,5 +177,61 @@ years_all_zeros <- years_all %>%
 write.csv(years_all_zeros, "/capstone/casaschools/precipitation/years_all_zeros.csv")
 
 write.csv(years_all_zeros, "/capstone/casaschools/shiny_dashboard/data/precipitation/years_all_zeros.csv")
+```
+
+# Edit for dashboard
+```{r}
+precip <- read.csv("/capstone/casaschools/shiny_dashboard/data/precipitation/years_all_zeros.csv")
+
+# Change the scenario names
+precip <- precip %>% mutate(scenario = ifelse(scenario == "High Emissions","High greenhouse gas emissions","Reduced greenhouse gas emissions"))
+
+# add zero
+precip <- precip %>% mutate(CDSCode_old = as.character(CDSCode),
+         # Count how many characters
+         count = nchar(CDSCode),
+         # If 13 add a 0 in front
+         CDSCode = ifelse(count == 13, paste0("0",CDSCode_old),
+                          CDSCode_old)) %>% 
+  select(-c(CDSCode_old, count, X)) %>% 
+  filter(year > 2005)
+
+# merge with school data
+school_points <- st_read("/capstone/casaschools/schools_data/California_Schools_2022-23/California_Schools_2022-23.shp") %>%
+  st_drop_geometry() %>% 
+  filter(Status == "Active") %>% 
+  select(c(CDSCode, City, DistrictNa, SchoolName))
+
+# Merge data 
+extreme_precip <- left_join(precip,school_points, by = "CDSCode")
+
+# export 
+
+write.csv(extreme_precip, "/capstone/casaschools/shiny_dashboard/data/precipitation/extreme_precipitation.csv")
+
+
+```
+
+
+
+# RCP 8.5 2030 - 2050 for hazard Metric
+
+```{r}
+year_sum <- subset(years_all_zeros, year %in% c(2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050))
+
+year_sum <- year_sum[, -c(4:6)]
+
+year_sum
+
+schools_extreme_precip <- year_sum %>% 
+  group_by(CDSCode) %>% 
+  summarise(total_days = sum(total)) %>% 
+  mutate(total_days = round(total_days,digits = 0))
+
+schools_extreme_precip
+
+write.csv(schools_extreme_precip, "/capstone/casaschools/precipitation/schools_extreme_precip.csv")
+
+write.csv(schools_extreme_precip, "/capstone/casaschools/hazard_summary/individual_tables/schools_extreme_precip.csv")
 ```
 
