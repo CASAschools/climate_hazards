@@ -43,7 +43,8 @@ unique(FEMA_state$FLD_ZONE)
 FEMA_reclass <- FEMA_state %>%
   mutate(flood_risk = ifelse(str_detect(FLD_ZONE, "A") | str_detect(FLD_ZONE, "V"), "high",
                        ifelse(str_detect(FLD_ZONE, "X"),"moderate to low",
-                              "undetermined")))
+                              "undetermined"))) %>% 
+  st_make_valid()
 
 ## test that it worked
 # the number of rows containing "A" and "V" for flood zone should equal the number of high risk polygons
@@ -64,8 +65,27 @@ nrow(filter(FEMA_reclass, flood_risk == "undetermined"))
 # take a look at total number of rows in FEMA_reclass
 dim(FEMA_reclass)
 
-#
+#write the FEMA reclass file into intermediate folder in capstone data
+st_write(FEMA_reclass, "/capstone/casaschools/flooding/intermediate_layers/fema_reclass.shp")
 ```
+
+
+Now let's simplify the FEMA_reclass file since it is so large.
+```{r}
+# remove polygons with empty geometries
+FEMA_reclass <- FEMA_reclass[!st_is_empty(FEMA_reclass), ]
+
+# simplify vertices
+FEMA_reclass_simple <- st_simplify(FEMA_reclass, dTolerance = 15)
+
+# remove polygons with empty geometries once more to be sure
+FEMA_reclass_simple <- FEMA_reclass_simple[!st_is_empty(FEMA_reclass_simple), ]
+
+#write the FEMA reclass file into intermediate folder in capstone data
+st_write(FEMA_reclass_simple, "/capstone/casaschools/flooding/intermediate_layers/fema_reclass_simple.shp")
+```
+
+
 
 We can see through our tests that our reclassifications worked. Now, we need to drop rows where flood risk is "undetermined", representing areas with irrelevant information.
 

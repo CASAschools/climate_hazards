@@ -120,3 +120,9 @@ fema_union <- fema_test %>%
   group_by(FLD_ZONE) %>%
   summarize(geometry = st_union(SHAPE), .groups = 'drop')
 ```
+
+Make layers load faster by school buffers to
+
+```{r}
+
+```
