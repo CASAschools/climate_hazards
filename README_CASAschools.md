@@ -168,8 +168,6 @@ School Boundaries Data
 1.  casaschools/extreme_heat: contains data on extreme heat imported
     from Cal-Adapt and prepared for plotting
 
-    ├── heat_2000_2005.csv
-
     ├── heat_rcp45_2000_20064.csv
 
     ├── heat_rcp85_2000_20064.csv
@@ -364,10 +362,6 @@ School Boundaries Data
     ├── extreme_heat
 
     │ ├── extreme_heat.csv
-
-    │ ├── extreme_heat_zeros.csv
-
-    │ └── heat_rcp85_2000_20064_zeros.csv
 
     └── precipitation
 
