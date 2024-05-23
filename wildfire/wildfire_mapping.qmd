@@ -54,7 +54,8 @@ whp_palette <- colorFactor(palette = whp_colors,
                            na.color = "transparent")
 
 # mapping them together
-leaflet() %>% 
+leaflet(options = leafletOptions(
+            attributionControl = FALSE)) %>% 
   
   # add topo basemap
   addProviderTiles(providers$Esri.WorldTopoMap, group = "topographic map") %>%
@@ -80,6 +81,12 @@ leaflet() %>%
   # add legend for wildfire hazard potential with custom labels
   addLegend("bottomright", colors = rev(whp_colors), labels = rev(labels),
             title = "wildfire hazard potential", opacity = 1) %>% 
+  
+  # add a scale bar
+  addScaleBar(position =  "bottomleft",
+              options = scaleBarOptions(imperial = TRUE,
+                                        metric = FALSE,
+                                        maxWidth = 300)) %>% 
   
   # add option to toggle data on and off
   addLayersControl(
@@ -114,9 +121,9 @@ leaflet() %>%
                    weight = 3, radius = 5, fillOpacity = 1,
                    group = "school point") %>% 
   
-  # add legend for wildfire hazard potential with custom labels
-   addLegend("bottomright", colors = rev(whp_colors), labels = rev(labels),
-            title = "wildfire hazard potential", opacity = 1) %>% 
+  # # add legend for wildfire hazard potential with custom labels
+  #  addLegend("bottomright", colors = rev(whp_colors), labels = rev(labels),
+  #           title = "wildfire hazard potential", opacity = 1) %>% 
   
    # add option to toggle data on and off
   addLayersControl(

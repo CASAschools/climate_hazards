@@ -107,18 +107,19 @@ ca_slr_2000 <- do.call(rbind, slr_shapefiles_2000)
 # crop ca_slr_2000 to the coastline of California to exclude slr data in the ocean
 ca_slr_2000 <- st_intersection(ca_slr_2000, ca_boundary)
 
+# transform to WGS 1984 for plotting
+ca_slr_2000 <- st_transform(ca_slr_2000, crs = 4326)
+
 # simplify vertices
 ca_slr_2000_simple <- st_simplify(ca_slr_2000, dTolerance = 10)
-
-# transform crs for mapping with leaflet
-ca_slr_2000_simple <- st_transform(ca_slr_2000_simple, crs = 4326) %>% 
-  st_make_valid()
 
 # remove polygons with empty geometries
 ca_slr_2000_simple <- ca_slr_2000_simple[!st_is_empty(ca_slr_2000_simple), ]
 
 # write the output to the server
-#st_write(ca_slr, "/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr_2000_simple.shp")
+#st_write(ca_slr_2000_simple, "/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr_2000_simple.shp")
+
+ca_slr_2000 <- st_read("/capstone/casaschools/sea_level_rise/intermediate_layers/ca_slr_2000_simple.shp")
 ```
 
 
@@ -225,7 +226,6 @@ dp_point <- st_transform(dp_point, crs = 4326)
 
 # clip the sea level rise polygons to the specified school buffer
 dp_slr_clip <- st_intersection(dp, ca_slr_2000_simple)
-dp_slr_clip_2050 <- st_intersection(dp, ca_slr_simple)
 
 # plot the extent of sea level rise
 leaflet() %>% 
@@ -238,11 +238,7 @@ leaflet() %>%
   
   # add clipped sea level rise polygon
   addPolygons(data = dp_slr_clip, fillColor = "cornflowerblue",
-              fillOpacity = .8, stroke = FALSE, group = "slr 2000") %>% 
-  
-  # add clipped sea level rise polygon
-  addPolygons(data = dp_slr_clip_2050, fillColor = "cornflowerblue",
-              fillOpacity = .8, stroke = FALSE, group = "slr 2050") %>% 
+              fillOpacity = .8, stroke = FALSE, group = "sea level rise extent") %>% 
   
   # add school buffer polygon
   addPolygons(data = dp, color = "black", fill = FALSE,
@@ -258,7 +254,7 @@ leaflet() %>%
   
   # add option to toggle data on and off
   addLayersControl(
-    overlayGroups = c("slr 2000", "slr 2050", "school community area", "school point"),
+    overlayGroups = c("sea level rise extent", "school community area", "school point"),
     baseGroups = c("topographic map", "satellite imagery"),
     options = layersControlOptions(collapsed = FALSE)) %>% 
 
