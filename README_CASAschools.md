@@ -659,7 +659,19 @@ Final tables and spatial needed for the R Shiny dashboard
 
     5.  coordinate reference system: EPSG 4326
 
-5.  whp_reclass2012.tif
+5.  ca_slr_2000_simple.shp
+
+    1.  number of variables: 2
+
+    2.  number of features: 95
+
+    3.  variable list: FID, geometry
+
+    4.  missing data code: NA
+
+    5.  coordinate reference system: EPSG 4326
+
+6.  whp_reclass2012.tif
 
     1.  raster file format: GeoTIFF
 
@@ -671,7 +683,7 @@ Final tables and spatial needed for the R Shiny dashboard
 
     5.  missing data code: NA
 
-6.  whp_reclass.tif
+7.  whp_reclass.tif
 
     1.  raster file format: GeoTIFF
 
@@ -683,7 +695,7 @@ Final tables and spatial needed for the R Shiny dashboard
 
     5.  missing data code: NA
 
-7.  fema_reclass_simple.shp
+8.  fema_reclass_simple.shp
 
     1.  number of variables: 24
 

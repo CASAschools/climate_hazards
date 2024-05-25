@@ -92,16 +92,26 @@ whp_schools_mask <- crop(whp_reclass, ca_schools, mask = TRUE)
 # calculate the mean whp value of every school buffer
 whp_schools <- extract(whp_schools_mask, ca_schools, fun = "mean", na.rm = TRUE, 
                        method = "simple", touches = TRUE, bind = TRUE) %>% 
-  st_as_sf()
+  st_as_sf() %>% 
+  # rename mean output as whp
+  rename(whp = Band_1)
 
-# round the values to the nearest whole number, rounding all values less than 0 up to 1
-whp_schools <- whp_schools %>% 
-  rename(whp = Band_1) %>% 
+## round the values to the nearest whole number, rounding all values less than 1 but greater than 0 up to 1
+# filter for schools where whp is 0
+whp_zero <- whp_schools %>% 
+  filter(whp == 0) %>% 
+  select(CDSCode, whp)
+
+# filter for schools where whp is not 0 and round the values
+whp_values <- whp_schools %>% 
   mutate(whp = round(whp, digits = 0),
          whp = ifelse(whp == 0, 1, whp)) %>% 
   select(CDSCode, whp)
 
-# join the whp scores back to the full school buffer areas 
+# row bind the dataframes back together
+whp_schools <- rbind(whp_zero, whp_values)
+
+## join the whp scores back to the full school buffer areas 
 schools_whp <- left_join(as.data.frame(ca_schools_full), 
                          as.data.frame(whp_schools),
                          by = "CDSCode", keep = FALSE) %>% 
