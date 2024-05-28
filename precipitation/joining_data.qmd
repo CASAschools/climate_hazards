@@ -38,8 +38,8 @@ current85 <- read.csv("/capstone/casaschools/precipitation/curcentury85.csv")
  
  century_totals_combined <- century_totals_combined[, -1]
 
- write.csv(century_totals_combined, "/capstone/casaschools/precipitation/century_totals_combined.csv")
- write.csv(century_totals_combined, "/capstone/casaschools/shiny_dashboard/data/precipitation/century_totals_combined.csv")
+ #write.csv(century_totals_combined, "/capstone/casaschools/precipitation/century_totals_combined.csv")
+ #write.csv(century_totals_combined, "/capstone/casaschools/shiny_dashboard/data/precipitation/century_totals_combined.csv")
 
 ```
 
@@ -65,8 +65,8 @@ current85 <- read.csv("/capstone/casaschools/precipitation/curcentury85.csv")
  
  year_totals_combined <- year_totals_combined[, -1]
 
- write.csv( year_totals_combined, "/capstone/casaschools/precipitation/year_totals_combined.csv")
-  write.csv( year_totals_combined, "/capstone/casaschools/shiny_dashboard/data/precipitation/year_totals_combined.csv")
+#write.csv( year_totals_combined, "/capstone/casaschools/precipitation/year_totals_combined.csv")
+# write.csv( year_totals_combined, "/capstone/casaschools/shiny_dashboard/data/precipitation/year_totals_combined.csv")
  
 ```
 
@@ -97,8 +97,8 @@ current45 <- read.csv("/capstone/casaschools/precipitation/curcentury45.csv")
  
  century_totals_combined45 <- century_totals_combined45[, -1]
 
- write.csv(century_totals_combined45, "/capstone/casaschools/precipitation/century_totals_combined45.csv")
- write.csv(century_totals_combined45, "/capstone/casaschools/shiny_dashboard/data/precipitation/century_totals_combined45.csv")
+ # write.csv(century_totals_combined45, "/capstone/casaschools/precipitation/century_totals_combined45.csv")
+ # write.csv(century_totals_combined45, "/capstone/casaschools/shiny_dashboard/data/precipitation/century_totals_combined45.csv")
  
 ```
 
@@ -118,8 +118,8 @@ current45 <- read.csv("/capstone/casaschools/precipitation/curcentury45.csv")
  
  year_totals_combined45 <- year_totals_combined45[, -1]
 
- write.csv(year_totals_combined45, "/capstone/casaschools/precipitation/year_totals_combined45.csv")
- write.csv(year_totals_combined45, "/capstone/casaschools/shiny_dashboard/data/precipitation/year_totals_combined45.csv")
+ # write.csv(year_totals_combined45, "/capstone/casaschools/precipitation/year_totals_combined45.csv")
+ # write.csv(year_totals_combined45, "/capstone/casaschools/shiny_dashboard/data/precipitation/year_totals_combined45.csv")
  
 ```
 
@@ -141,9 +141,9 @@ century_totals_combined45 <- century_totals_combined45 %>%
 
 century_all <- rbind(century_totals_combined, century_totals_combined45)
 
- write.csv(century_all, "/capstone/casaschools/precipitation/century_all.csv")
-write.csv(century_all, "/capstone/casaschools/shiny_dashboard/data/precipitation/century_all.csv")
- 
+#  write.csv(century_all, "/capstone/casaschools/precipitation/century_all.csv")
+# write.csv(century_all, "/capstone/casaschools/shiny_dashboard/data/precipitation/century_all.csv")
+#  
 ```
 
 ```{r}
@@ -154,16 +154,29 @@ year_totals_combined45 <- read.csv("/capstone/casaschools/precipitation/year_tot
 year_totals_combined <- year_totals_combined[, -1]
 year_totals_combined45 <- year_totals_combined45[, -1]
 
+# total days for RCP 8.5
 year_totals_combined <- year_totals_combined %>% 
   mutate(scenario = "High Emissions")
 
+# total days for RCP 4.5
 year_totals_combined45 <- year_totals_combined45 %>% 
   mutate(scenario = "Low Emissions")
 
+# bind high emissions and low emissions scenarios
 years_all <- rbind(year_totals_combined, year_totals_combined45)
 
 #add back in zeros
-years_all_zeros <- years_all %>% 
+years_all_zeros <- years_all %>%
+  group_by(CDSCode, year, total, century, scenario) %>%
+  summarise(total = sum(total)) %>%
+  mutate(CDSCode = as.character(CDSCode),
+         count = nchar(CDSCode),
+         # some rows are missing 0's in front
+         CDSCode = ifelse(count == 13, paste0("0", CDSCode),
+                              CDSCode))
+
+# add back in zeros for the RCP 8.5 data for use in the hazard summary calculation
+rcp85_zeros <- year_totals_combined %>% 
   group_by(CDSCode, year, total, century, scenario) %>% 
   summarise(total = sum(total)) %>% 
   mutate(CDSCode = as.character(CDSCode),
@@ -174,9 +187,9 @@ years_all_zeros <- years_all %>%
 
 #write.csv(years_all, "/capstone/casaschools/precipitation/years_all.csv")
 
-write.csv(years_all_zeros, "/capstone/casaschools/precipitation/years_all_zeros.csv")
-
-write.csv(years_all_zeros, "/capstone/casaschools/shiny_dashboard/data/precipitation/years_all_zeros.csv")
+# write.csv(years_all_zeros, "/capstone/casaschools/precipitation/years_all_zeros.csv")
+# 
+# write.csv(years_all_zeros, "/capstone/casaschools/shiny_dashboard/data/precipitation/years_all_zeros.csv")
 ```
 
 # Edit for dashboard
@@ -207,22 +220,25 @@ extreme_precip <- left_join(precip,school_points, by = "CDSCode")
 
 # export 
 
-write.csv(extreme_precip, "/capstone/casaschools/shiny_dashboard/data/precipitation/extreme_precipitation.csv")
+# write.csv(extreme_precip, "/capstone/casaschools/shiny_dashboard/data/precipitation/extreme_precipitation.csv")
 
 
 ```
 
 
 
-# RCP 8.5 2030 - 2050 for hazard Metric
+# RCP 8.5 2030 - 2035 for hazard summary
 
 ```{r}
-year_sum <- subset(years_all_zeros, year %in% c(2030, 2031, 2032, 2033, 2034, 2035))
+# subset for years 2030-2035
+year85_sum <- subset(rcp85_zeros, year %in% c(2030, 2031, 2032, 2033, 2034, 2035))
 
-year_sum <- year_sum[, -c(4:6)]
+# only select CDSCode, total, and year columns
+year85_sum <- year85_sum[, -c(4:6)]
 
-year_sum
+year85_sum
 
+# group by CDSCcode and sum the total number of extreme precip days over the range of years
 schools_extreme_precip <- year_sum %>% 
   group_by(CDSCode) %>% 
   summarise(total_days = sum(total)) %>% 
@@ -230,8 +246,9 @@ schools_extreme_precip <- year_sum %>%
 
 schools_extreme_precip
 
-write.csv(schools_extreme_precip, "/capstone/casaschools/precipitation/schools_extreme_precip.csv")
+# write results to the server
+#write.csv(schools_extreme_precip, "/capstone/casaschools/precipitation/schools_extreme_precip.csv")
 
-write.csv(schools_extreme_precip, "/capstone/casaschools/hazard_summary/individual_tables/schools_extreme_precip.csv")
+#write.csv(schools_extreme_precip, "/capstone/casaschools/hazard_summary/individual_tables/schools_extreme_precip.csv")
 ```
 
