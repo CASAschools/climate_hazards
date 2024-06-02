@@ -1,9 +1,9 @@
 ```{r, message = FALSE}
 library(sf)
 library(tidyverse)
-library(tmap)
 library(terra)
 ```
+
 
 ```{r}
 # read in wildfire data
@@ -83,7 +83,7 @@ unique(whp_reclass)
 
 ### calculating the value of wildfire hazard potential for every school buffer
 
-The next step in this process is to assign wildfire hazard potential scores for every buffer. This involves taking every cell that overlaps with the school buffers and averaging the wildfire hazard potential score. We'll include cells on the boundary without interpolating scores based on percentage of area. The rationale for this is that score corresponds to the entire cell. If a cell has a wildfire hazard potential score of 2, a buffer boundary cutting it in half doesn't also divide the score by 2. The entire underlying area has a score of 2. Then, these values will be rounded to the nearest whole number to be back on a scale from 1-5. This is a limitation of the process, in that risk becomes overstated or understated based on the rounding. One area could be a 4.4 and another a 4.6, but those then become 4 and 5, respectively.
+The next step in this process is to assign wildfire hazard potential scores for every buffer. This involves taking every cell that overlaps with the school buffers and averaging the wildfire hazard potential score. We'll include cells on the boundary without interpolating scores based on percentage of area. The rationale for this is that score corresponds to the entire cell. If a cell has a wildfire hazard potential score of 2, a buffer boundary cutting it in half doesn't also divide the score by 2. The entire underlying area has a score of 2. Then, these values will be rounded to the nearest whole number to be back on a scale from 1-5. Buffers with a value of 0 will remain 0, while all values greater than 0 and less than 1 will be rounded up to 1. This is a limitation of the process, in that risk becomes overstated or understated based on the rounding. One area could be a 4.4 and another a 4.6, but those then become 4 and 5, respectively.
 
 ```{r}
 # crop the whp raster to each school, using the buffers as a mask
@@ -130,7 +130,7 @@ schools_whp <- schools_whp %>%
 
 ## 2012 version of the data
 
-preparing the 2012 version of the data for mapping
+Preparing the 2012 version of the data serves to help mapping in the dashboard. The 2012 data is reclassified in the same way as the 2023 data for mapping.
 
 ```{r}
 # read in data
@@ -164,8 +164,4 @@ unique(whp_reclass2012)
 # write result to the server
 #writeRaster(whp_reclass2012, "/capstone/casaschools/wildfire/intermediate_layers/whp_reclass2012.tif")
 ```
-
-## comparing the two rasters
-
-subtracting to see what the difference is. Some have values like -5, which could only arise from areas that are developed now (a value of 0), and used to be in the very high risk category.
 

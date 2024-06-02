@@ -53,9 +53,7 @@ of California-Santa Barbara, CA 93106
 Email:
 [danielle.harlow\@ucsb.edu](mailto:danielle.harlow@ucsb.edu){.email}
 
-3\. Date of data collection or obtaining (single date, range,
-approximate date) \<suggested format YYYY-MM-DD. If multiple data files,
-list it accordingly\>:
+3\. Date of data collection or obtaining
 
 Hazards Data
 
@@ -161,233 +159,174 @@ School Boundaries Data
 
 6\. Recommended citation for the project:
 
+Curtin, Charles; Glass, Kristina; Chen, Liane; Vaquero, Hazel
+(Forthcoming 2024). Climate Hazards Data Integration and Visualization
+for the Climate Adaptations Solutions Accelerator through
+School-Community Hubs [Dataset]. Dryad.
+<https://doi.org/10.5061/dryad.1jwstqk3g>
+
 **DATA & FILE OVERVIEW**
 
-1\. File List: relevant files contained in the "casaschools" directory
+1\. File List: relevant files contained in the CASAschools GitHub
+organization: <https://github.com/CASAschools>
 
-1.  casaschools/extreme_heat: contains data on extreme heat imported
-    from Cal-Adapt and prepared for plotting
+├── climate_hazards
 
-    ├── heat_rcp45_2000_20064.csv
+│ ├── calmatters
 
-    ├── heat_rcp85_2000_20064.csv
+│ │ └── calmatter_cleaning.qmd
 
-    ├── rcp4.5_2006_2034.csv
+│ ├── climate_hazards.Rproj
 
-    ├── rcp4.5_2035_2064.csv
+│ ├── climate_hazard_summary
 
-    ├── rcp8.5_2006_2034.csv
+│ │ └── index_prep.qmd
 
-    └── rcp8.5_2035_2064.csv
+│ ├── extreme_heat
 
-2.  casaschools/flooding: contains flood risk data imported from FEMA,
-    as well as intermediate layers prepared for mapping
+│ │ ├── caladapt-r.qmd
 
-    ├── 06111C_20240219
+│ │ ├── dashboard_prep.qmd
 
-    ├── S_FLD_HAZ_AR.shp
+│ │ ├── output_data
 
-    ├── intermediate_layers
+│ │ │ └── threshold.csv
 
-    ├── fema_high_union.shp
+│ │ ├── schools_extreme_heat_days_rcp_4\_5.qmd
 
-    ├── fema_reclass.shp
+│ │ └── schools_extreme_heat_days_rcp85.qmd
 
-    ├── fema_reclass_simple.shp
+│ ├── flooding-FEMA
 
-    └── NFHL_06_20240401
+│ │ ├── FEMA_data_prep.qmd
 
-    ├── NFHL_06_20240401.gdb
+│ │ ├── FEMA_flood.Rproj
 
-    └── NFHL_06_20240401_metadata.xml
+│ │ ├── FEMA.qmd
 
-3.  casaschools/precipitation: contains data on extreme heat imported
-    from Cal-Adapt and prepared for plotting
+│ │ ├── FEMA_schools.qmd
 
-    ├── century_all.csv
+│ │ ├── FEMA_state.qmd
 
-    ├── century_totals_combined45.csv
+│ │ ├── flooding_mapping.qmd
 
-    ├── century_totals_combined.csv
+│ │ └── flooding.R
 
-    ├── curcentury45.csv
+│ ├── LICENSE
 
-    ├── curcentury45_year.csv
+│ ├── precipitation
 
-    ├── curcentury85.csv
+│ │ ├── caladapt_precip_r.qmd
 
-    ├── curcentury85_year.csv
+│ │ ├── joining_data.qmd
 
-    ├── historic85.csv
+│ │ ├── schools_extreme_precipitation_4.qmd
 
-    ├── historic85_year.csv
+│ │ └── schools_extreme_precip.qmd
 
-    ├── midcentury45.csv
+│ ├── sea_level_rise
 
-    ├── midcentury45_year.csv
+│ │ └── sea_level_rise.qmd: *cleans sea level rise data and prepares it
+for use in the hazard summary score and mapping in the dashboard*
 
-    ├── midcentury85.csv
+│ └── wildfire
 
-    ├── midcentury85_year.csv
+│ ├── wildfire_mapping.qmd: *prepares wildfire data for mapping in the
+dashboard*
 
-    ├── schools_extreme_precip.csv
+│ └── wildfire_prep.qmd: *cleans wildfire data and prepares it for use
+in the hazard summary score*
 
-    ├── years_all.csv
+├── hazard_summary_metric
 
-    ├── years_all_zeros.csv
+│ ├── hazard_summary_metric.Rproj
 
-    ├── year_totals_combined45.csv
+│ ├── hazard_summary.qmd: *normalizes data on a scale from 0-5 and
+prepares for plotting in the dashboard*
 
-    └── year_totals_combined.csv
+├── school-boundaries
 
-4.  casaschools/sea_level_rise: contains data for sea level rise for
-    2000 and 2050 from CoSMoS as well as intermediate layers prepared
-    for mapping
+│ ├── prepare_school_buffers.qmd
 
-    ├── intermediate_layers
+│ ├── README.md
 
-    │ ├── ca_slr_2000_simple.shp
+│ ├── school-boundaries.Rproj
 
-    │ ├── ca_slr.shp
+│ ├── school_district_boundaries.qmd
 
-    │ ├── ca_slr_simple.shp
+│ └── school_point_buffer.qmd
 
-    └── raw_data
+├── shiny_dashboard: *all of the code needed to run the California
+Schools Climate Hazards Dashboard*
 
-    ├── cosmos
+│ ├── global.R: *datasets, packages, and global options needed to run
+the dashboard*
 
-    │ ├── 2000
+│ ├── R: *scripts that build plots, maps, and reactive text*
 
-    │ │ ├── county_los_angeles_slr000_w100_fldhazd.shp
+│ ├── server.R: *outputs plots, maps, and connects the buttons based on
+user input*
 
-    │ │ ├── county_monterey_slr000_w100_fldhazd.shp
+│ ├── shiny_dashboard.Rproj
 
-    │ │ ├── county_orange_slr000_w100_fldhazd.shp
+│ ├── text: *markdown files that contain the text for each page*
 
-    │ │ ├── county_san_diego_slr000_w100_fldhazd.shp
+│ ├── ui.R: *layout elements and structure of the dashboard*
 
-    │ │ ├── county_santa_barbara_10n_slr000_w100_fldhazd.shp
-
-    │ │ ├── county_santa_barbara_11n_slr000_w100_fldhazd.shp
-
-    │ │ ├── county_ventura_slr000_w100_fldhazd.shp
-
-    │ │ ├── mendocino_fldhazd_slr000_w100.shp
-
-    │ │ ├── san_francisco_fldhazd_slr000_w100.shp
-
-    │ │ ├── san_luis_obispo_fldhazd_slr000_w100.shp
-
-    │ │ ├── san_mateo_fldhazd_slr000_w100.shp
-
-    │ │ ├── santa_cruz_fldhazd_slr000_w100.shp
-
-    │ │ ├── sfb_fldhazd_slr000_w100.shp
-
-    │ │ ├── sonoma_fldhazd_slr000_w100.shp
-
-    │ └── 2050
-
-    │ ├── county_los_angeles_slr025_w100_fldhazd.shp
-
-    │ ├── county_monterey_slr025_w100_fldhazd.shp
-
-    │ ├── county_orange_slr025_w100_fldhazd.shp
-
-    │ ├── county_san_diego_slr025_w100_fldhazd.shp
-
-    │ ├── county_santa_barbara_10n_slr025_w100_fldhazd.shp
-
-    │ ├── county_santa_barbara_11n_slr025_w100_fldhazd.shp
-
-    │ ├── county_ventura_slr025_w100_fldhazd.shp
-
-    │ ├── mendocino_fldhazd_slr025_w100.shp
-
-    │ ├── san_francisco_fldhazd_slr025_w100.shp
-
-    │ ├── san_luis_obispo_fldhazd_slr025_w100.shp
-
-    │ ├── san_mateo_fldhazd_slr025_w100.shp
-
-    │ ├── santa_cruz_fldhazd_slr025_w100.shp
-
-    │ ├── sfb_fldhazd_slr025_w100.shp
-
-    │ ├── sonoma_fldhazd_slr025_w100.shp
-
-5.  casaschools/wildfire: contains data for wildfire hazard potential
-    for 2012 and 2023 from the US Forest Service as well as intermediate
-    layers prepared for mapping
-
-    ├── intermediate_layers
-
-    │ ├── whp_ca.tif
-
-    │ ├── whp_reclass2012.tif
-
-    │ └── whp_reclass.tif
-
-    └── raw_data
-
-    ├── whp_2012
-
-    │ ├── w001001.adf
-
-    └── whp2023_cls_conus.tif
-
-6.  casaschools/hazard_summary: contains .csv files summarizing climate
-    hazards for each school as well as a table joining the hazard
-    summary scores for each school
-
-    ├── individual_tables
-
-    │ ├── flood_schools.csv
-
-    │ ├── schools_extreme_heat.csv
-
-    │ ├── schools_extreme_precip.csv
-
-    │ ├── schools_slr.csv
-
-    │ └── schools_whp.csv
-
-    └── testing
-
-    └── schools_hazards_intervals.csv
-
-7.  casaschools/shiny_dashboard: contains additional data used in the R
-    Shiny dashboard
-
-    ├── extreme_heat
-
-    │ ├── extreme_heat.csv
-
-    └── precipitation
-
-    ├── extreme_precipitation.csv
+│ └── www: *any images used in the dashboard*
 
 2\. Relationship between files, if important:
 
-3\. Additional related data collected that was not included in the
-current data package:
-
-4\. Are there multiple versions of the dataset? \<A. If yes, name of
-file(s) that was updated: i. Why was the file updated? ii. When was the
-file updated?\>
+All of the repositories up to shiny_dashboard contain the code needed to
+create final outputs for use in the California Schools Climate Hazards
+Dashboard. The shiny_dashboard uses these datasets, which are included
+as a part of this submission.
 
 **METHODOLOGICAL INFORMATION**
 
 1\. Description of methods used for collection/generation of data:
-\<Include links or references to publications or other documentation
-containing experimental design or protocols used in data collection\>
 
-2\. Methods for processing the data: \<describe how the submitted data
-were generated from the raw or collected data\>
+Data for extreme heat and extreme precipitation were retrieved using API
+requests from the caladaptr package. The data retrieved to calculate
+extreme heat days were historical observed daily maximum temperature for
+1961-2005 and projected daily maximum temperature for 2006-2064. The
+data retrieved to calculate extreme precipitation days were historical
+observed daily precipitation totals for 1961-2005 and projected daily
+precipitation totals for 2006-2064.
 
--   Data were processed in R Studio using Quarto Docs. Tabular data were
-    cleaned and summarized over a smaller range of years. Spatial data
-    were cleaned and reclassified to serve mapping purposes.
+Data for wildfire, flooding, and sea level rise were downloaded directly
+from their sources and stored in a remote server for use.
+
+2\. Methods for processing the data:
+
+All data were processed in R Studio using Quarto Docs. Tabular data for
+extreme heat and precipitation first used the retrieved historical data
+to calculate a threshold value to classify an extreme event. The
+threshold was determined to be the 98th percentile value of observed
+historical data for California. For extreme heat, this is 98°F. For
+extreme precipitation, this is 0.73 inches. Then, projected daily values
+exceeding these thresholds were assigned a 1, and those not exceeding
+assigned a 0. The count of projected extreme days within each year from
+2005-2064 was then assigned to each California public school.
+
+Spatial data was mainly processed to serve mapping purposes in the
+dashboard. The wildfire raster was clipped to the boundaries of
+California and reclassified. The mean wildfire hazard potential score
+for each school area was also derived and attached to each school. The
+original FEMA flood polygons have many different classifications, which
+were reclassified into three categories: high risk, moderate to low
+risk, and undetermined risk. The percentage of each school area that
+falls within a high risk flood zone was also attached to each school.
+The sea level rise polygons simply describe the extent of flooding under
+a 0.8 feet sea level rise scenario and a 100-year coastal storm. The
+polygons were simplified to decrease map load times in the dashboard.
+The percentage of each school area affected by the sea level rise
+scenario and a 100-year coastal storm were also attached to each school.
+
+To read a more detailed description of data processing, please refer to
+the "Summary of Solution Design" section in CASAschools Technical
+Documentation:
+<https://bren.ucsb.edu/projects/climate-hazards-data-integration-and-visualization-climate-adaptation-solutions>
 
 3\. Instrument- or software-specific information needed to interpret the
 data: \<include full name and version of software, and any necessary
@@ -594,60 +533,111 @@ packages or libraries needed to run scripts\>
         - zip                  [* -> 2.2.2]
         - zoo                  [* -> 1.8-12]
 
-4\. Standards and calibration information, if appropriate:
-
-5\. Environmental/experimental conditions:
-
-6\. Describe any quality-assurance procedures performed on the data:
-
-7\. People involved with sample collection, processing, analysis and/or
-submission:
-
 **DATA-SPECIFIC INFORMATION FOR:**
 
-Final tables and spatial needed for the R Shiny dashboard
+These are the datasets associated with this submission. They are the
+tables and spatial data needed for the California Schools Climate
+Hazards Dashboard.
 
-1.  extreme_heat.csv
+1.  extreme_heat.csv: *contains the total number of projected extreme
+    heat days for every California public school between 2006-2064*
 
     1.  number of variables: 7
 
     2.  number of cases/rows: 1180944
 
-    3.  variable list: CDSCode, year, total, scenario, DistrictNa,
-        SchoolName
+    3.  relevant variables:
+
+        1.  CDSCode: *unique school identifier*
+
+        2.  year: *year from 2006-2064*
+
+        3.  total: *total number of extreme heat days in a given year
+            for a given RCP scenario*
+
+        4.  scenario: *Representative Concentration Pathway (RCP),
+            either 4.5 or 8.5*
+
+        5.  DistrictNa: *school district*
+
+        6.  SchoolName: *school name*
 
     4.  missing data code: NA
 
-    5.  specialized formats or other abbreviations used:
-
-2.  extreme_precipitation.csv
+2.  extreme_precipitation.csv: *contains the total number of projected
+    extreme precipitation days for every California public school
+    between 2006-2064*
 
     1.  number of variables: 9
 
     2.  number of cases/rows: 1180944
 
-    3.  variable list: ...1, CDSCode, year, total, century, scenario,
-        City, DistrictNa, SchoolName
+    3.  relevant variables:
+
+        1.  CDSCode: *unique school identifier*
+
+        2.  year: *year from 2006-2064*
+
+        3.  total: *total number of extreme precipitation days in a
+            given year for a given RCP scenario*
+
+        4.  scenario: *Representative Concentration Pathway (RCP),
+            either 4.5 or 8.5*
+
+        5.  City: *city that the school is in*
+
+        6.  DistrictNa: *school district*
+
+        7.  SchoolName: *school name*
 
     4.  missing data code: NA
 
-    5.  specialized formats or other abbreviations used:
-
-3.  schools_hazards_intervals.csv
+3.  schools_hazards_intervals.csv: *contains a single number summary of
+    each hazard for each school, the normalized score from 0-5 of each
+    hazard for each school, and the total score*
 
     1.  number of variables: 13
 
     2.  number of cases/rows: 10008
 
-    3.  variable list: CDSCode, SchoolName, DistrictNa, slr_percent,
-        FEMA_percent, schools_heat, schools_precip, whp, flood_score,
-        slr_score, heat_score, precip_score, hazard_score
+    3.  relevant variables:
+
+        1.  CDSCode: *unique school identifier*
+
+        2.  SchoolName: *school name*
+
+        3.  DistrictNa: *school district*
+
+        4.  slr_percent: *percentage of school area affected by sea
+            level rise and a 100-year coastal storm*
+
+        5.  FEMA_percent: *percentage of school area within a high risk
+            flood zone*
+
+        6.  schools_heat: *total number of extreme heat days between
+            2025-2030*
+
+        7.  schools_precip: *total number of extreme precipitation days
+            between 2025-2030*
+
+        8.  whp: *mean wildfire hazard potential score from 0-5*
+
+        9.  flood_score: *FEMA_percent normalized from 0-5*
+
+        10. slr_score: *slr_percent normalized from 0-5*
+
+        11. heat_score: *schools_heat normalized from 0-5*
+
+        12. precip_score: *schools_precip normalized from 0-5*
+
+        13. hazard_score: *the total hazard score, or the sum of whp,
+            flood_score, slr_score, heat_score, and precip_score*
 
     4.  missing data code: NA
 
-    5.  specialized format or other abbreviations used:
-
-4.  ca_slr_simple.shp
+4.  ca_slr_simple.shp: *simplified polygons describing flooding extent
+    under 0.8 feet of sea level rise (projected 2050 sea levels) and a
+    100-year coastal storm for California*
 
     1.  number of variables: 2
 
@@ -659,7 +649,9 @@ Final tables and spatial needed for the R Shiny dashboard
 
     5.  coordinate reference system: EPSG 4326
 
-5.  ca_slr_2000_simple.shp
+5.  ca_slr_2000_simple.shp: *simplified polygons describing flooding
+    extent with no sea level rise (2000 sea levels) and a 100-year
+    coastal storm for California*
 
     1.  number of variables: 2
 
@@ -671,7 +663,9 @@ Final tables and spatial needed for the R Shiny dashboard
 
     5.  coordinate reference system: EPSG 4326
 
-6.  whp_reclass2012.tif
+6.  whp_reclass2012.tif: *a raster of wildfire hazard potential for
+    California from 2012 reclassified to very low, low, moderate, high,
+    and very high*
 
     1.  raster file format: GeoTIFF
 
@@ -683,7 +677,9 @@ Final tables and spatial needed for the R Shiny dashboard
 
     5.  missing data code: NA
 
-7.  whp_reclass.tif
+7.  whp_reclass.tif: *a raster of wildfire hazard potential for
+    California from 2023 reclassified to very low, low, moderate, high,
+    and very high*
 
     1.  raster file format: GeoTIFF
 
@@ -695,7 +691,9 @@ Final tables and spatial needed for the R Shiny dashboard
 
     5.  missing data code: NA
 
-8.  fema_reclass_simple.shp
+8.  fema_reclass_simple.shp: *simplified polygons describing flood risk
+    for California reclassified to high risk, moderate to low risk, and
+    undetermined risk*
 
     1.  number of variables: 24
 

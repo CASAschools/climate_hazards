@@ -5,9 +5,9 @@ library(terra)
 library(leaflet)
 ```
 
-Mapping wildfire for school districts. The plan to map is to overlay school buffers areas on top of the wildfire raster data. We should use the buffers that are the complete buffers for mapping so that users can see information about the school's average wildfire hazard potential score.
+Wildfire hazard potential is mapped in the dashboard as the reclassified rasters from 2023 and 2012.
 
-
+### reading in data
 ```{r}
 # read in ca wildfire data
 whp_ca <- rast("/capstone/casaschools/wildfire/intermediate_layers/whp_ca.tif")
@@ -27,7 +27,7 @@ schools_buffers <- st_read("/capstone/casaschools/schools_data/schools_buffer/sc
                            quiet = TRUE)
 ```
 
-
+### mapping the 2023 whp data
 ```{r}
 ## mapping the 2023 whp data
 # filter for one school
@@ -121,73 +121,9 @@ leaflet() %>%
                    weight = 3, radius = 5, fillOpacity = 1,
                    group = "school point") %>% 
   
-  # # add legend for wildfire hazard potential with custom labels
-  #  addLegend("bottomright", colors = rev(whp_colors), labels = rev(labels),
-  #           title = "wildfire hazard potential", opacity = 1) %>% 
-  
    # add option to toggle data on and off
   addLayersControl(
     overlayGroups = c("wildfire hazard potential", "school community area", "school point"),
     baseGroups = c("topographic map", "satellite imagery"),
     options = layersControlOptions(collapsed = FALSE))
 ```
-
-### testing
-
-removing NA values entirely so they are just holes in the data
-```{r}
-mask <- !is.na(whp_school2012)
-
-test_mask <- mask(whp_school2012, mask)
-
-# define color palette and labels for wildfire hazard potential
-labels2 <- c("developed or open water", "very low", "low", "moderate", "high", "very high")
-whp_colors2 <- c("grey", "#fee391", "#fec44f", "#fe9929", "#d95f0e", "#993404")
-whp_palette2 <- colorFactor(palette = whp_colors,
-                           domain = values(whp_school))
-
-# leaflet map of wildfire hazard potential for 2012
-leaflet() %>% 
-  
-   # add topo basemap
-  addProviderTiles(providers$Esri.WorldTopoMap, group = "topographic map") %>%
-  
-  # add imagery basemap
-  addProviderTiles(providers$Esri.WorldImagery, group = "satellite imagery") %>% 
-  
-  # add cropped wildfire hazard potential raster for 2023 
-  addRasterImage(test_mask, colors = whp_palette2, opacity = .7, group = "wildfire hazard potential") %>%
-  
-  # add school buffer polygon
-  addPolygons(data = dp, color = "black", fill = FALSE, 
-              weight = 2, group = "school community area") %>% 
-  
-  # add school point
-  addCircleMarkers(data = dp_point, color = "blue", stroke = FALSE, 
-                   weight = 3, radius = 5, fillOpacity = 1,
-                   group = "school point") %>% 
-  
-  # add legend for wildfire hazard potential with custom labels
-   addLegend("bottomright", colors = rev(whp_colors2), labels = rev(labels2),
-            title = "wildfire hazard potential", opacity = 1) %>% 
-  
-   # add option to toggle data on and off
-  addLayersControl(
-    overlayGroups = c("wildfire hazard potential", "school community area", "school point"),
-    baseGroups = c("topographic map", "satellite imagery"),
-    options = layersControlOptions(collapsed = FALSE))
-```
-
-57% of cells in the 2012 and 2023 reclassified raster are NA. 52% of cells in the original 2012 data are NA. 43% of cells in the original us data are NA  
-```{r}
-# 2012 data
-((global(whp_us2012, fun = "isNA")[1, 1]) / ncell(whp_us2012)) * 100
-
-(global(whp_reclass2012, fun = "isNA") / ncell(whp_reclass2012)) * 100
-
-# for 2023 data
-(global(whp_us, fun = "isNA") / ncell(whp_us)) * 100
-
-(global(whp_reclass, fun = "isNA") / ncell(whp_reclass)) * 100
-```
-

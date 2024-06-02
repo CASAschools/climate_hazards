@@ -220,8 +220,9 @@ extreme_precip <- left_join(precip,school_points, by = "CDSCode")
 
 # export 
 
-# write.csv(extreme_precip, "/capstone/casaschools/shiny_dashboard/data/precipitation/extreme_precipitation.csv")
+#write.csv(extreme_precip, "/capstone/casaschools/shiny_dashboard/data/precipitation/extreme_precipitation.csv")
 
+test <- read.csv("/capstone/casaschools/shiny_dashboard/data/precipitation/extreme_precipitation.csv")
 
 ```
 
