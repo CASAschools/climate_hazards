@@ -243,15 +243,20 @@ paste("Average 98th percentile threshold for all of California's public school d
 # Calculate Threshold By School Points
 
 ```{r}
-
+# Load in school data
 school_points <- st_read("/capstone/casaschools/schools_data/California_Schools_2022-23/California_Schools_2022-23.shp")
 
+# Filter to active schools
 school_points <- school_points %>% 
   filter(Status == "Active")
 
+# Select CDSCode
 school_points <- school_points %>% 
-  select(c(SCode))
+  select(c(CDSCode))
 ```
+
+ 
+To determine whether a day is considered as an extreme heat day a threshold was calculated using daily maximum temperatures. 
 
 
 ```{r}
