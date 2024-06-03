@@ -21,6 +21,9 @@ The 5 climate hazards were obtained from the following open source databases:
 ## Usage
 This repository contains folders with Quarto Documents detailing how to access extreme heat and precipitation data from the CalAdapt API through the caladaptR package, and reading in files for wildfire, flooding, and sea-level rise. As well as how the hazard summary metric score was computed and combined all 5 hazards.
 
+
+### File Structure
+
 ```markdown
 ├── calmatters
 │   └── calmatter_cleaning.qmd
