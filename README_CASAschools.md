@@ -212,13 +212,13 @@ organization: <https://github.com/CASAschools>
 
 │ ├── precipitation
 
-│ │ ├── caladapt_precip_r.qmd
+│ │ ├── caladapt_precip_r.qmd: *Determine maximum daily precipitation 98th percentile threshold*
 
-│ │ ├── joining_data.qmd
+│ │ ├── joining_data.qmd: *Joined RCP4.5 & RCP8.5 and prepped the dataframe for usage in daashboard*
 
-│ │ ├── schools_extreme_precipitation_4.qmd
+│ │ ├── schools_extreme_precip_days_rcp45.qmd: *Extreme precipitation days calculated for all 10,008 schools in a RCP 4.5 scenario*
 
-│ │ └── schools_extreme_precip.qmd
+│ │ └── schools_extreme_precip_days_rcp85.qmd: *Extreme precipitation days calculated for all 10,008 schools in a RCP 4.5 scenario*
 
 │ ├── sea_level_rise
 
