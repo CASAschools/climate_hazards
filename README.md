@@ -19,8 +19,46 @@ The 5 climate hazards were obtained from the following open source databases:
 
 
 ## Usage
+This repository contains folders with Quarto Documents detailing how to access extreme heat and precipitation data from the CalAdapt API through the caladaptR package, and reading in files for wildfire, flooding, and sea-level rise. As well as how the hazard summary metric score was computed and combined all 5 hazards.
 
-This repository contains folders with Quarto Documents detailing how to access extreme heat and precipitation data from the CalAdapt API through the caladaptr package, and reading in files for wildfire, flooding, and sea-level rise.
+```markdown
+├── calmatters
+│   └── calmatter_cleaning.qmd
+├── climate_hazards.Rproj
+├── climate_hazard_summary
+│   └── index_prep.qmd
+├── dashboard_prep
+│   └── reactive_text.qmd
+├── extreme_heat
+│   ├── caladapt-r.qmd
+│   ├── dashboard_prep.qmd
+│   ├── schools_extreme_heat_days_rcp_45.qmd
+│   └── schools_extreme_heat_days_rcp85.qmd
+├── flooding-FEMA
+│   ├── FEMA_data_prep.qmd
+│   ├── FEMA_flood.Rproj
+│   ├── FEMA.qmd
+│   ├── FEMA_schools.qmd
+│   ├── FEMA_state.qmd
+│   ├── flooding_mapping.qmd
+│   └── flooding.R
+├── LICENSE
+├── precipitation
+│   ├── caladapt_precip_r.qmd
+│   ├── joining_data.qmd
+│   ├── schools_extreme_precipitation_4.qmd
+│   └── schools_extreme_precip.qmd
+├── README_CASAschools.html
+├── README_CASAschools.md
+├── README.md
+├── sea_level_rise
+│   └── sea_level_rise.qmd
+├── session_info.txt
+└── wildfire
+    ├── wildfire_mapping.qmd
+    └── wildfire_prep.qmd
+```
+
  
 ## Authors 
 The authors of this dashboard are [Liane Chen](https://github.com/lchenhub), [Charlie Curtin](https://github.com/charliecurtin1), [Kristina Glass](https://github.com/kristinaglass), and [Hazel Vaquero](https://github.com/hazelvaq). For any comments or questions about this dashboard, please reach out to @cp-casaschools@bren.ucsb.edu
