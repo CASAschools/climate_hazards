@@ -174,7 +174,7 @@ organization: <https://github.com/CASAschools>
 
 │ ├── calmatters
 
-│ │ └── calmatter_cleaning.qmd
+│ │ └── calmatter_cleaning.qmd: *Cleaning Calmatters Disaster day .csv to be displayed on dashboard*
 
 │ ├── climate_hazards.Rproj
 
@@ -184,17 +184,13 @@ organization: <https://github.com/CASAschools>
 
 │ ├── extreme_heat
 
-│ │ ├── caladapt-r.qmd
+│ │ ├── caladapt-r.qmd: *Determine maximum daily temperature 98th percentile threshold* 
 
-│ │ ├── dashboard_prep.qmd
+│ │ ├── dashboard_prep.qmd: *Joined RCP4.5 & RCP8.5 and prepped the dataframe for usage in daashboard*
 
-│ │ ├── output_data
+│ │ ├── schools_extreme_heat_days_rcp_45.qmd: *Extreme heat days calculated for all 10,008 schools in a RCP 4.5 scenario*
 
-│ │ │ └── threshold.csv
-
-│ │ ├── schools_extreme_heat_days_rcp_4\_5.qmd
-
-│ │ └── schools_extreme_heat_days_rcp85.qmd
+│ │ └── schools_extreme_heat_days_rcp85.qmd: *Extreme heat days calculated for all 10,008 schools in a RCP 8.5 scenario*
 
 │ ├── flooding-FEMA
 
