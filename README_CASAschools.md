@@ -184,11 +184,11 @@ organization: <https://github.com/CASAschools>
 
 │ ├── extreme_heat
 
-│ │ ├── caladapt-r.qmd: *Determine maximum daily temperature 98th percentile threshold* 
+│ │ ├── extreme_heat_threshold.qmd: *Determine maximum daily temperature 98th percentile threshold* 
 
 │ │ ├── dashboard_prep.qmd: *Joined RCP4.5 & RCP8.5 and prepped the dataframe for usage in daashboard*
 
-│ │ ├── schools_extreme_heat_days_rcp_45.qmd: *Extreme heat days calculated for all 10,008 schools in a RCP 4.5 scenario*
+│ │ ├── schools_extreme_heat_days_rcp45.qmd: *Extreme heat days calculated for all 10,008 schools in a RCP 4.5 scenario*
 
 │ │ └── schools_extreme_heat_days_rcp85.qmd: *Extreme heat days calculated for all 10,008 schools in a RCP 8.5 scenario*
 
