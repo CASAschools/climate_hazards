@@ -174,7 +174,8 @@ organization: <https://github.com/CASAschools>
 
 │ ├── calmatters
 
-│ │ └── calmatter_cleaning.qmd: *Cleaning Calmatters Disaster day .csv to be displayed on dashboard*
+│ │ └── calmatter_cleaning.qmd: *Cleaning Calmatters Disaster day .csv
+to be displayed on dashboard*
 
 │ ├── climate_hazards.Rproj
 
@@ -184,31 +185,41 @@ organization: <https://github.com/CASAschools>
 
 │ ├── extreme_heat
 
-│ │ ├── extreme_heat_threshold.qmd: *Determine maximum daily temperature 98th percentile threshold* 
+│ │ ├── extreme_heat_threshold.qmd: *Determine maximum daily temperature
+98th percentile threshold*
 
-│ │ ├── dashboard_prep.qmd: *Joined RCP4.5 & RCP8.5 and prepped the dataframe for usage in daashboard*
+│ │ ├── dashboard_prep.qmd: *Joined RCP4.5 & RCP8.5 and prepped the
+dataframe for usage in daashboard*
 
-│ │ ├── schools_extreme_heat_days_rcp45.qmd: *Extreme heat days calculated for all 10,008 schools in a RCP 4.5 scenario*
+│ │ ├── schools_extreme_heat_days_rcp45.qmd: *Extreme heat days
+calculated for all 10,008 schools in a RCP 4.5 scenario*
 
-│ │ └── schools_extreme_heat_days_rcp85.qmd: *Extreme heat days calculated for all 10,008 schools in a RCP 8.5 scenario*
+│ │ └── schools_extreme_heat_days_rcp85.qmd: *Extreme heat days
+calculated for all 10,008 schools in a RCP 8.5 scenario*
 
 │ ├── flooding-FEMA
 
-│ │ ├── FEMA_schools.qmd: *Joined high risk with schools to find percentage of area*
+│ │ ├── FEMA_schools.qmd: *Joined high risk with schools to find
+percentage of area*
 
-│ │ └── flooding_mapping.qmd: *Binned risk categories into high, moderate to low, and undetermined and plotted leaflet*
+│ │ └── flooding_mapping.qmd: *Binned risk categories into high,
+moderate to low, and undetermined and plotted leaflet*
 
 │ ├── LICENSE
 
 │ ├── precipitation
 
-│ │ ├── caladapt_precip_r.qmd: *Determine maximum daily precipitation 98th percentile threshold*
+│ │ ├── caladapt_precip_r.qmd: *Determine maximum daily precipitation
+98th percentile threshold*
 
-│ │ ├── joining_data.qmd: *Joined RCP4.5 & RCP8.5 and prepped the dataframe for usage in daashboard*
+│ │ ├── joining_data.qmd: *Joined RCP4.5 & RCP8.5 and prepped the
+dataframe for usage in daashboard*
 
-│ │ ├── schools_extreme_precip_days_rcp45.qmd: *Extreme precipitation days calculated for all 10,008 schools in a RCP 4.5 scenario*
+│ │ ├── schools_extreme_precip_days_rcp45.qmd: *Extreme precipitation
+days calculated for all 10,008 schools in a RCP 4.5 scenario*
 
-│ │ └── schools_extreme_precip_days_rcp85.qmd: *Extreme precipitation days calculated for all 10,008 schools in a RCP 4.5 scenario*
+│ │ └── schools_extreme_precip_days_rcp85.qmd: *Extreme precipitation
+days calculated for all 10,008 schools in a RCP 4.5 scenario*
 
 │ ├── sea_level_rise
 
@@ -315,209 +326,140 @@ Documentation:
 <https://bren.ucsb.edu/projects/climate-hazards-data-integration-and-visualization-climate-adaptation-solutions>
 
 3\. Instrument- or software-specific information needed to interpret the
-data: \<include full name and version of software, and any necessary
-packages or libraries needed to run scripts\>
+data:
 
 -   Software: R Studio version 2022.12.0.353.20
 
 -   R version 4.2.2 (2022-10-31)
 
--   Packages and versions used:
+-   Packages used, versions, and source
 
-        - abind                [* -> 1.4-5]
-        - anytime              [* -> 0.3.9]
-        - askpass              [* -> 1.1]
-        - backports            [* -> 1.4.1]
-        - base64enc            [* -> 0.1-3]
-        - BH                   [* -> 1.81.0-1]
-        - bit                  [* -> 4.0.5]
-        - bit64                [* -> 4.0.5]
-        - blob                 [* -> 1.2.3]
-        - brew                 [* -> 1.0-8]
-        - brio                 [* -> 1.1.4]
-        - broom                [* -> 1.0.5]
-        - bslib                [* -> 0.7.0]
-        - cachem               [* -> 1.0.8]
-        - callr                [* -> 3.7.6]
-        - cellranger           [* -> 1.1.0]
-        - class                [* -> 7.3-20]
-        - classInt             [* -> 0.4-10]
-        - cli                  [* -> 3.6.2]
-        - clipr                [* -> 0.8.0]
-        - colorspace           [* -> 2.1-0]
-        - commonmark           [* -> 1.8.1]
-        - conflicted           [* -> 1.2.0]
-        - countrycode          [* -> 1.6.0]
-        - cpp11                [* -> 0.4.3]
-        - crayon               [* -> 1.5.2]
-        - credentials          [* -> 1.3.2]
-        - crosstalk            [* -> 1.2.1]
-        - curl                 [* -> 5.0.0]
-        - data.table           [* -> 1.14.8]
-        - DBI                  [* -> 1.2.2]
-        - dbplyr               [* -> 2.5.0]
-        - desc                 [* -> 1.4.3]
-        - devtools             [* -> 2.4.5]
-        - dichromat            [* -> 2.0-0.1]
-        - diffobj              [* -> 0.3.5]
-        - digest               [* -> 0.6.35]
-        - downlit              [* -> 0.4.2]
-        - dplyr                [* -> 1.1.3]
-        - dtplyr               [* -> 1.3.0]
-        - e1071                [* -> 1.7-14]
-        - ellipsis             [* -> 0.3.2]
-        - evaluate             [* -> 0.23]
-        - fansi                [* -> 1.0.6]
-        - farver               [* -> 2.1.1]
-        - fastmap              [* -> 1.1.1]
-        - fontawesome          [* -> 0.5.2]
-        - forcats              [* -> 1.0.0]
-        - fs                   [* -> 1.6.4]
-        - gargle               [* -> 1.3.0]
-        - generics             [* -> 0.1.3]
-        - geojsonsf            [* -> 2.0.3]
-        - geometries           [* -> 0.2.4]
-        - gert                 [* -> 1.9.2]
-        - ggplot2              [* -> 3.5.0]
-        - gh                   [* -> 1.4.0]
-        - gitcreds             [* -> 0.1.2]
-        - glue                 [* -> 1.7.0]
-        - googledrive          [* -> 2.0.0]
-        - googlesheets4        [* -> 1.0.1]
-        - gridExtra            [* -> 2.3]
-        - gtable               [* -> 0.3.4]
-        - haven                [* -> 2.5.2]
-        - here                 [* -> 1.0.1]
-        - highr                [* -> 0.10]
-        - hms                  [* -> 1.1.3]
-        - htmltools            [* -> 0.5.8.1]
-        - htmlwidgets          [* -> 1.6.4]
-        - httpuv               [* -> 1.6.9]
-        - httr                 [* -> 1.4.5]
-        - httr2                [* -> 0.2.2]
-        - ids                  [* -> 1.0.1]
-        - ini                  [* -> 0.3.1]
-        - isoband              [* -> 0.2.7]
-        - janitor              [* -> 2.2.0]
-        - jquerylib            [* -> 0.1.4]
-        - jsonify              [* -> 1.2.2]
-        - jsonlite             [* -> 1.8.8]
-        - KernSmooth           [* -> 2.23-20]
-        - knitr                [* -> 1.46]
-        - labeling             [* -> 0.4.3]
-        - later                [* -> 1.3.0]
-        - lattice              [* -> 0.20-45]
-        - lazyeval             [* -> 0.2.2]
-        - leafem               [* -> 0.2.3]
-        - leaflet              [* -> 2.2.2]
-        - leaflet.extras       [* -> 1.0.0]
-        - leaflet.minicharts   [* -> 0.6.2]
-        - leaflet.providers    [* -> 2.0.0]
-        - leafsync             [* -> 0.1.0]
-        - lifecycle            [* -> 1.0.4]
-        - lubridate            [* -> 1.9.2]
-        - lwgeom               [* -> 0.2-13]
-        - magrittr             [* -> 2.0.3]
-        - MASS                 [* -> 7.3-58.1]
-        - Matrix               [* -> 1.5-1]
-        - memoise              [* -> 2.0.1]
-        - mgcv                 [* -> 1.8-41]
-        - mime                 [* -> 0.12]
-        - miniUI               [* -> 0.1.1.1]
-        - modelr               [* -> 0.1.10]
-        - munsell              [* -> 0.5.1]
-        - nlme                 [* -> 3.1-160]
-        - openssl              [* -> 2.0.6]
-        - pillar               [* -> 1.9.0]
-        - pkgbuild             [* -> 1.4.4]
-        - pkgconfig            [* -> 2.0.3]
-        - pkgdown              [* -> 2.0.7]
-        - pkgload              [* -> 1.3.4]
-        - plotly               [* -> 4.10.4]
-        - png                  [* -> 0.1-8]
-        - praise               [* -> 1.0.0]
-        - prettyunits          [* -> 1.1.1]
-        - processx             [* -> 3.8.4]
-        - profvis              [* -> 0.3.7]
-        - progress             [* -> 1.2.2]
-        - promises             [* -> 1.2.0.1]
-        - proxy                [* -> 0.4-27]
-        - ps                   [* -> 1.7.6]
-        - purrr                [* -> 1.0.2]
-        - R6                   [* -> 2.5.1]
-        - ragg                 [* -> 1.2.5]
-        - rapidjsonr           [* -> 1.2.0]
-        - rappdirs             [* -> 0.3.3]
-        - raster               [* -> 3.6-26]
-        - rcmdcheck            [* -> 1.4.0]
-        - RColorBrewer         [* -> 1.1-3]
-        - Rcpp                 [* -> 1.0.12]
-        - readr                [* -> 2.1.4]
-        - readxl               [* -> 1.4.2]
-        - rematch              [* -> 1.0.1]
-        - rematch2             [* -> 2.1.2]
-        - remotes              [* -> 2.4.2.1]
-        - renv                 [* -> 1.0.7]
-        - reprex               [* -> 2.0.2]
-        - rlang                [* -> 1.1.3]
-        - rlist                [* -> 0.4.6.2]
-        - rmarkdown            [* -> 2.26]
-        - roxygen2             [* -> 7.2.3]
-        - rprojroot            [* -> 2.0.4]
-        - rstudioapi           [* -> 0.15.0]
-        - rversions            [* -> 2.1.2]
-        - rvest                [* -> 1.0.3]
-        - s2                   [* -> 1.1.6]
-        - sass                 [* -> 0.4.9]
-        - scales               [* -> 1.3.0]
-        - selectr              [* -> 0.4-2]
-        - sessioninfo          [* -> 1.2.2]
-        - sf                   [* -> 1.0-14]
-        - sfheaders            [* -> 0.4.4]
-        - shiny                [* -> 1.7.4]
-        - shinycssloaders      [* -> 1.0.0]
-        - shinydashboard       [* -> 0.7.2]
-        - shinyWidgets         [* -> 0.8.6]
-        - snakecase            [* -> 0.11.1]
-        - sourcetools          [* -> 0.1.7-1]
-        - sp                   [* -> 2.1-4]
-        - spData               [* -> 2.3.0]
-        - stars                [* -> 0.6-4]
-        - stringi              [* -> 1.7.12]
-        - stringr              [* -> 1.5.0]
-        - sys                  [* -> 3.4.1]
-        - systemfonts          [* -> 1.0.4]
-        - terra                [* -> 1.7-55]
-        - testthat             [* -> 3.2.1.1]
-        - textshaping          [* -> 0.3.6]
-        - tibble               [* -> 3.2.1]
-        - tidyr                [* -> 1.3.0]
-        - tidyselect           [* -> 1.2.1]
-        - tidyverse            [* -> 2.0.0]
-        - timechange           [* -> 0.2.0]
-        - tinytex              [* -> 0.50]
-        - tzdb                 [* -> 0.3.0]
-        - units                [* -> 0.8-5]
-        - urlchecker           [* -> 1.0.1]
-        - usethis              [* -> 2.1.6]
-        - utf8                 [* -> 1.2.4]
-        - uuid                 [* -> 1.1-0]
-        - vctrs                [* -> 0.6.5]
-        - viridisLite          [* -> 0.4.2]
-        - vroom                [* -> 1.6.3]
-        - waldo                [* -> 0.5.2]
-        - whisker              [* -> 0.4.1]
-        - widgetframe          [* -> 0.3.1]
-        - withr                [* -> 3.0.0]
-        - wk                   [* -> 0.9.1]
-        - xfun                 [* -> 0.43]
-        - XML                  [* -> 3.99-0.16.1]
-        - xml2                 [* -> 1.3.4]
-        - xopen                [* -> 1.0.0]
-        - xtable               [* -> 1.8-4]
-        - yaml                 [* -> 2.3.8]
-        - zip                  [* -> 2.2.2]
-        - zoo                  [* -> 1.8-12]
+         abind                1.4-5       2016-07-21 [2] CRAN (R 4.2.2)
+         backports            1.4.1       2021-12-13 [2] CRAN (R 4.2.2)
+         base64enc            0.1-3       2015-07-28 [2] CRAN (R 4.2.2)
+         broom                1.0.5       2023-06-09 [2] CRAN (R 4.2.2)
+         bslib                0.7.0       2024-03-29 [1] CRAN (R 4.2.2)
+         cachem               1.0.8       2023-05-01 [2] CRAN (R 4.2.2)
+         class                7.3-20      2022-01-16 [2] CRAN (R 4.2.2)
+         classInt             0.4-10      2023-09-05 [2] CRAN (R 4.2.2)
+         cli                  3.6.2       2023-12-11 [1] CRAN (R 4.2.2)
+         cluster              2.1.4       2022-08-22 [2] CRAN (R 4.2.2)
+         codetools            0.2-18      2020-11-04 [2] CRAN (R 4.2.2)
+         colorspace         * 2.1-0       2023-01-23 [2] CRAN (R 4.2.2)
+         countrycode        * 1.6.0       2024-03-22 [1] CRAN (R 4.2.2)
+         crosstalk            1.2.1       2023-11-23 [1] CRAN (R 4.2.2)
+         data.table           1.14.8      2023-02-17 [2] CRAN (R 4.2.2)
+         DBI                  1.2.2       2024-02-16 [1] CRAN (R 4.2.2)
+         DEoptimR             1.0-11      2022-04-03 [2] CRAN (R 4.2.2)
+         devtools           * 2.4.5       2022-10-11 [2] CRAN (R 4.2.2)
+         dichromat          * 2.0-0.1     2022-05-02 [2] CRAN (R 4.2.2)
+         digest               0.6.35      2024-03-11 [1] CRAN (R 4.2.2)
+         diptest              0.77-1      2024-04-10 [1] CRAN (R 4.2.2)
+         dplyr              * 1.1.3       2023-09-03 [2] CRAN (R 4.2.2)
+         e1071                1.7-14      2023-12-06 [1] CRAN (R 4.2.2)
+         ellipsis             0.3.2       2021-04-29 [2] CRAN (R 4.2.2)
+         fansi                1.0.6       2023-12-08 [1] CRAN (R 4.2.2)
+         fastmap              1.1.1       2023-02-24 [2] CRAN (R 4.2.2)
+         flexmix              2.3-19      2023-03-16 [1] CRAN (R 4.2.2)
+         fontawesome        * 0.5.2       2023-08-19 [2] CRAN (R 4.2.2)
+         forcats            * 1.0.0       2023-01-29 [2] CRAN (R 4.2.2)
+         fpc                  2.2-12      2024-04-30 [1] CRAN (R 4.2.2)
+         fs                   1.6.4       2024-04-25 [1] CRAN (R 4.2.2)
+         generics             0.1.3       2022-07-05 [2] CRAN (R 4.2.2)
+         ggplot2            * 3.5.0       2024-02-23 [1] CRAN (R 4.2.2)
+         glue                 1.7.0       2024-01-09 [1] CRAN (R 4.2.2)
+         gridExtra          * 2.3         2017-09-09 [2] CRAN (R 4.2.2)
+         gtable               0.3.4       2023-08-21 [2] CRAN (R 4.2.2)
+         hms                  1.1.3       2023-03-21 [2] CRAN (R 4.2.2)
+         htmltools            0.5.8.1     2024-04-04 [1] CRAN (R 4.2.2)
+         htmlwidgets          1.6.4       2023-12-06 [1] CRAN (R 4.2.2)
+         httpuv               1.6.9       2023-02-14 [2] CRAN (R 4.2.2)
+         httr                 1.4.5       2023-02-24 [2] CRAN (R 4.2.2)
+         insight              0.19.11     2024-05-12 [1] CRAN (R 4.2.2)
+         janitor            * 2.2.0       2023-02-02 [2] CRAN (R 4.2.2)
+         jquerylib            0.1.4       2021-04-26 [2] CRAN (R 4.2.2)
+         jsonlite             1.8.8       2023-12-04 [1] CRAN (R 4.2.2)
+         kernlab              0.9-32      2023-01-31 [2] CRAN (R 4.2.2)
+         KernSmooth           2.23-20     2021-05-03 [2] CRAN (R 4.2.2)
+         knitr                1.46        2024-04-06 [1] CRAN (R 4.2.2)
+         later                1.3.0       2021-08-18 [2] CRAN (R 4.2.2)
+         lattice              0.20-45     2021-09-22 [2] CRAN (R 4.2.2)
+         lazyeval             0.2.2       2019-03-15 [2] CRAN (R 4.2.2)
+         leafem               0.2.3       2023-09-17 [2] CRAN (R 4.2.2)
+         leaflet            * 2.2.2       2024-03-26 [1] CRAN (R 4.2.2)
+         leaflet.extras     * 1.0.0       2018-04-21 [1] CRAN (R 4.2.2)
+         leaflet.minicharts * 0.6.2       2021-05-11 [1] CRAN (R 4.2.2)
+         leaflet.providers    2.0.0       2023-10-17 [2] CRAN (R 4.2.2)
+         leafsync             0.1.0       2019-03-05 [2] CRAN (R 4.2.2)
+         lifecycle            1.0.4       2023-11-07 [1] CRAN (R 4.2.2)
+         lubridate          * 1.9.2       2023-02-10 [2] CRAN (R 4.2.2)
+         lwgeom               0.2-13      2023-05-22 [2] CRAN (R 4.2.2)
+         magrittr             2.0.3       2022-03-30 [2] CRAN (R 4.2.2)
+         MASS                 7.3-58.1    2022-08-03 [2] CRAN (R 4.2.2)
+         mclust               6.0.0       2022-10-31 [2] CRAN (R 4.2.2)
+         memoise              2.0.1       2021-11-26 [2] CRAN (R 4.2.2)
+         mime                 0.12        2021-09-28 [2] CRAN (R 4.2.2)
+         miniUI               0.1.1.1     2018-05-18 [2] CRAN (R 4.2.2)
+         modeltools           0.2-23      2020-03-05 [2] CRAN (R 4.2.2)
+         moments              0.14.1      2022-05-02 [1] CRAN (R 4.2.2)
+         munsell              0.5.1       2024-04-01 [1] CRAN (R 4.2.2)
+         nnet                 7.3-18      2022-09-28 [2] CRAN (R 4.2.2)
+         nullabor             0.3.9       2020-02-25 [1] CRAN (R 4.2.2)
+         pillar               1.9.0       2023-03-22 [2] CRAN (R 4.2.2)
+         pkgbuild             1.4.4       2024-03-17 [1] CRAN (R 4.2.2)
+         pkgconfig            2.0.3       2019-09-22 [2] CRAN (R 4.2.2)
+         pkgload              1.3.4       2024-01-16 [1] CRAN (R 4.2.2)
+         plotly             * 4.10.4      2024-01-13 [1] CRAN (R 4.2.2)
+         png                  0.1-8       2022-11-29 [2] CRAN (R 4.2.2)
+         prabclus             2.3-3       2023-10-24 [1] CRAN (R 4.2.2)
+         profvis              0.3.7       2020-11-02 [2] CRAN (R 4.2.2)
+         promises             1.2.0.1     2021-02-11 [2] CRAN (R 4.2.2)
+         proxy                0.4-27      2022-06-09 [2] CRAN (R 4.2.2)
+         purrr              * 1.0.2       2023-08-10 [2] CRAN (R 4.2.2)
+         R6                   2.5.1       2021-08-19 [2] CRAN (R 4.2.2)
+         raster               3.6-26      2023-10-14 [2] CRAN (R 4.2.2)
+         RColorBrewer       * 1.1-3       2022-04-03 [2] CRAN (R 4.2.2)
+         Rcpp                 1.0.12      2024-01-09 [1] CRAN (R 4.2.2)
+         readr              * 2.1.4       2023-02-10 [2] CRAN (R 4.2.2)
+         regressinator      * 0.1.3       2024-01-11 [1] CRAN (R 4.2.2)
+         remotes              2.4.2.1     2023-07-18 [2] CRAN (R 4.2.2)
+         rlang                1.1.3       2024-01-10 [1] CRAN (R 4.2.2)
+         rlist              * 0.4.6.2     2021-09-03 [1] CRAN (R 4.2.2)
+         robustbase           0.95-0      2022-04-02 [2] CRAN (R 4.2.2)
+         rstudioapi           0.15.0      2023-07-07 [2] CRAN (R 4.2.2)
+         sass                 0.4.9       2024-03-15 [1] CRAN (R 4.2.2)
+         scales               1.3.0       2023-11-28 [1] CRAN (R 4.2.2)
+         sessioninfo          1.2.2       2021-12-06 [2] CRAN (R 4.2.2)
+         sf                 * 1.0-14      2023-07-11 [2] CRAN (R 4.2.2)
+         shiny              * 1.7.4       2022-12-15 [2] CRAN (R 4.2.2)
+         shinycssloaders    * 1.0.0       2020-07-28 [1] CRAN (R 4.2.2)
+         shinydashboard     * 0.7.2       2021-09-30 [1] CRAN (R 4.2.2)
+         shinyWidgets       * 0.8.6       2024-04-24 [1] CRAN (R 4.2.2)
+         snakecase            0.11.1      2023-08-27 [2] CRAN (R 4.2.2)
+         sp                   2.1-4       2024-04-30 [1] CRAN (R 4.2.2)
+         stars                0.6-4       2023-09-11 [2] CRAN (R 4.2.2)
+         stringi              1.7.12      2023-01-11 [2] CRAN (R 4.2.2)
+         stringr            * 1.5.0       2022-12-02 [2] CRAN (R 4.2.2)
+         terra              * 1.7-55      2023-10-13 [2] CRAN (R 4.2.2)
+         tibble             * 3.2.1       2023-03-20 [2] CRAN (R 4.2.2)
+         tidyr              * 1.3.0       2023-01-24 [2] CRAN (R 4.2.2)
+         tidyselect           1.2.1       2024-03-11 [1] CRAN (R 4.2.2)
+         tidyverse          * 2.0.0       2023-02-22 [2] CRAN (R 4.2.2)
+         timechange           0.2.0       2023-01-11 [2] CRAN (R 4.2.2)
+         tmap               * 3.3-3       2024-05-06 [1] Github (mtennekes/tmap@a4e9fc9)
+         tmaptools            3.1-1       2023-10-19 [2] Github (r-tmap/tmaptools@0c8b0b1)
+         tzdb                 0.3.0       2022-03-28 [2] CRAN (R 4.2.2)
+         units              * 0.8-5       2023-11-28 [1] CRAN (R 4.2.2)
+         urlchecker           1.0.1       2021-11-30 [2] CRAN (R 4.2.2)
+         usethis            * 2.1.6       2022-05-25 [2] CRAN (R 4.2.2)
+         utf8                 1.2.4       2023-10-22 [1] CRAN (R 4.2.2)
+         vctrs                0.6.5       2023-12-01 [1] CRAN (R 4.2.2)
+         viridisLite          0.4.2       2023-05-02 [2] CRAN (R 4.2.2)
+         withr                3.0.0       2024-01-16 [1] CRAN (R 4.2.2)
+         xfun                 0.43        2024-03-25 [1] CRAN (R 4.2.2)
+         XML                  3.99-0.16.1 2024-01-22 [1] CRAN (R 4.2.2)
+         xtable               1.8-4       2019-04-21 [2] CRAN (R 4.2.2)
+         zoo                * 1.8-12      2023-04-13 [2] CRAN (R 4.2.2)
 
 **DATA-SPECIFIC INFORMATION FOR:**
 

@@ -53,6 +53,7 @@ calmatters2 <- calmatters1 %>%
                               cdscode_c))
 
 ```
+
 #### Comparing Datasets
 
 ```{r}
@@ -93,7 +94,7 @@ anti_m <- anti_join(calmatters2, calschools, by = c("school","district","cds_cod
 write.csv(anti_calmatter, "cleaned.csv")
 ```
 
-The rows identified as missing CDSCode or without matching school name and district were manually fixed outside of this QMD file. It was decided it was the best approach as there is no open data source of updated school names and school districts. The following is working with the data that was cleaned through Excel. 
+The rows identified as missing CDSCode or without matching school name and district were manually fixed outside of this QMD file. It was decided it was the best approach as there is no open data source of updated school names and school districts. The following is working with the data that was cleaned through Excel.
 
 ```{r}
 # Import cleaned data
@@ -113,9 +114,3 @@ cleaned_calmatters <- cleaned_calmatters %>%
 # rejoin this data with schools_checked
 disaster_days <- merge()
 ```
-
-
-
-
-
-
