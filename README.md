@@ -8,6 +8,7 @@ To view more details about the analysis, please view the technical documentation
 ## Table of Contents
 - Data Sources
 - Usage
+- Packages and Software
 - Authors
 - License
   
@@ -23,38 +24,34 @@ The 5 climate hazards were obtained from the following open source databases:
 ## Usage
 This repository contains folders with Quarto Documents detailing how to access extreme heat and precipitation data from the CalAdapt API through the caladaptR package, and reading in files for wildfire, flooding, and sea-level rise. As well as how the hazard summary metric score was computed and combined all 5 hazards.
 
+## Packages and Software
+To view packages used, versions, and software requirements, please view the "session_info.txt" file.
+
 
 ### File Structure
 
-```markdown
+```bash
 ├── calmatters
 │   └── calmatter_cleaning.qmd
 ├── climate_hazards.Rproj
 ├── climate_hazard_summary
-│   └── index_prep.qmd
-├── dashboard_prep
-│   └── reactive_text.qmd
+│   └── hazard_summary.qmd
 ├── extreme_heat
-│   ├── caladapt-r.qmd
 │   ├── dashboard_prep.qmd
-│   ├── schools_extreme_heat_days_rcp_45.qmd
+│   ├── extreme_heat_threshold.qmd
+│   ├── schools_extreme_heat_days_rcp45.qmd
 │   └── schools_extreme_heat_days_rcp85.qmd
 ├── flooding-FEMA
-│   ├── FEMA_data_prep.qmd
-│   ├── FEMA_flood.Rproj
 │   ├── FEMA.qmd
 │   ├── FEMA_schools.qmd
 │   ├── FEMA_state.qmd
-│   ├── flooding_mapping.qmd
-│   └── flooding.R
+│   └── flooding_mapping.qmd
 ├── LICENSE
 ├── precipitation
 │   ├── caladapt_precip_r.qmd
 │   ├── joining_data.qmd
-│   ├── schools_extreme_precipitation_4.qmd
-│   └── schools_extreme_precip.qmd
-├── README_CASAschools.html
-├── README_CASAschools.md
+│   ├── schools_extreme_precip_days_rcp45.qmd
+│   └── schools_extreme_precip_days_rcp85.qmd
 ├── README.md
 ├── sea_level_rise
 │   └── sea_level_rise.qmd
