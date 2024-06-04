@@ -180,7 +180,7 @@ organization: <https://github.com/CASAschools>
 
 │ ├── climate_hazard_summary
 
-│ │ └── index_prep.qmd
+│ │ └──
 
 │ ├── extreme_heat
 
