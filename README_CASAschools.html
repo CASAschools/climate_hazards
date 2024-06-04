@@ -360,7 +360,7 @@ through School Community Hubs</p>
 <p>2. Author Information</p>
 <p>A. Principal Investigator Contact Information Name: Liane Chen,
 Charlie Curtin, Kristina Glass, and Hazel Vaquero</p>
-<p>Institution: University of California Santa Barbara Bren School of
+<p>Institution: University of California Santa Barbara, Bren School of
 Environmental Science &amp; Management</p>
 <p>Address: Bren Hall, 2400 University of California, Santa Barbara, CA
 93117 Email: <a href="mailto:liane@ucsb.edu" class="email">liane@ucsb.edu</a>, <a href="mailto:charlescurtin@ucsb.edu" class="email">charlescurtin@ucsb.edu</a>, <a href="mailto:kristinaglass@ucsb.edu" class="email">kristinaglass@ucsb.edu</a>, <a href="mailto:hazelvaquero@ucsb.edu" class="email">hazelvaquero@ucsb.edu</a></p>
@@ -382,9 +382,7 @@ School</p>
 <p>Address: Education 3129 Gevirtz Graduate School of Education,
 University of California-Santa Barbara, CA 93106</p>
 <p>Email: <a href="mailto:danielle.harlow@ucsb.edu" class="email">danielle.harlow@ucsb.edu</a></p>
-<p>3. Date of data collection or obtaining (single date, range,
-approximate date) &lt;suggested format YYYY-MM-DD. If multiple data
-files, list it accordingly&gt;:</p>
+<p>3. Date of data collection or obtaining</p>
 <p>Hazards Data</p>
 <ul>
 <li><p>FEMA Flood NFHL V3.2: 2024-03-13</p></li>
@@ -468,31 +466,37 @@ School-Community Hubs [Dataset]. Dryad. <a href="https://doi.org/10.5061/dryad.1
 organization: <a href="https://github.com/CASAschools" class="uri">https://github.com/CASAschools</a></p>
 <p>├── climate_hazards</p>
 <p>│ ├── calmatters</p>
-<p>│ │ └── calmatter_cleaning.qmd</p>
+<p>│ │ └── calmatter_cleaning.qmd: <em>Cleaning Calmatters Disaster day
+.csv to be displayed on dashboard</em></p>
 <p>│ ├── climate_hazards.Rproj</p>
 <p>│ ├── climate_hazard_summary</p>
-<p>│ │ └── index_prep.qmd</p>
+<p>│ │ └──</p>
 <p>│ ├── extreme_heat</p>
-<p>│ │ ├── caladapt-r.qmd</p>
-<p>│ │ ├── dashboard_prep.qmd</p>
-<p>│ │ ├── output_data</p>
-<p>│ │ │ └── threshold.csv</p>
-<p>│ │ ├── schools_extreme_heat_days_rcp_4_5.qmd</p>
-<p>│ │ └── schools_extreme_heat_days_rcp85.qmd</p>
+<p>│ │ ├── extreme_heat_threshold.qmd: <em>Determine maximum daily
+temperature 98th percentile threshold</em></p>
+<p>│ │ ├── dashboard_prep.qmd: <em>Joined RCP4.5 &amp; RCP8.5 and
+prepped the dataframe for usage in daashboard</em></p>
+<p>│ │ ├── schools_extreme_heat_days_rcp45.qmd: <em>Extreme heat days
+calculated for all 10,008 schools in a RCP 4.5 scenario</em></p>
+<p>│ │ └── schools_extreme_heat_days_rcp85.qmd: <em>Extreme heat days
+calculated for all 10,008 schools in a RCP 8.5 scenario</em></p>
 <p>│ ├── flooding-FEMA</p>
-<p>│ │ ├── FEMA_data_prep.qmd</p>
-<p>│ │ ├── FEMA_flood.Rproj</p>
-<p>│ │ ├── FEMA.qmd</p>
-<p>│ │ ├── FEMA_schools.qmd</p>
-<p>│ │ ├── FEMA_state.qmd</p>
-<p>│ │ ├── flooding_mapping.qmd</p>
-<p>│ │ └── flooding.R</p>
+<p>│ │ ├── FEMA_schools.qmd: <em>Joined high risk with schools to find
+percentage of area</em></p>
+<p>│ │ ├── flooding_mapping.qmd: <em>Binned risk categories into high,
+moderate to low, and undetermined and plotted leaflet</em></p>
 <p>│ ├── LICENSE</p>
 <p>│ ├── precipitation</p>
-<p>│ │ ├── caladapt_precip_r.qmd</p>
-<p>│ │ ├── joining_data.qmd</p>
-<p>│ │ ├── schools_extreme_precipitation_4.qmd</p>
-<p>│ │ └── schools_extreme_precip.qmd</p>
+<p>│ │ ├── caladapt_precip_r.qmd: <em>Determine maximum daily
+precipitation 98th percentile threshold</em></p>
+<p>│ │ ├── joining_data.qmd: <em>Joined RCP4.5 &amp; RCP8.5 and prepped
+the dataframe for usage in daashboard</em></p>
+<p>│ │ ├── schools_extreme_precip_days_rcp45.qmd: <em>Extreme
+precipitation days calculated for all 10,008 schools in a RCP 4.5
+scenario</em></p>
+<p>│ │ └── schools_extreme_precip_days_rcp85.qmd: <em>Extreme
+precipitation days calculated for all 10,008 schools in a RCP 4.5
+scenario</em></p>
 <p>│ ├── sea_level_rise</p>
 <p>│ │ └── sea_level_rise.qmd: <em>cleans sea level rise data and
 prepares it for use in the hazard summary score and mapping in the
@@ -504,7 +508,8 @@ the dashboard</em></p>
 use in the hazard summary score</em></p>
 <p>├── hazard_summary_metric</p>
 <p>│ ├── hazard_summary_metric.Rproj</p>
-<p>│ ├── hazard_summary.qmd:</p>
+<p>│ ├── hazard_summary.qmd: <em>normalizes data on a scale from 0-5 and
+prepares for plotting in the dashboard</em></p>
 <p>├── school-boundaries</p>
 <p>│ ├── prepare_school_buffers.qmd</p>
 <p>│ ├── README.md</p>
@@ -514,7 +519,7 @@ use in the hazard summary score</em></p>
 <p>├── shiny_dashboard: <em>all of the code needed to run the California
 Schools Climate Hazards Dashboard</em></p>
 <p>│ ├── global.R: <em>datasets, packages, and global options needed to
-run the R shiny dashboard</em></p>
+run the dashboard</em></p>
 <p>│ ├── R: <em>scripts that build plots, maps, and reactive
 text</em></p>
 <p>│ ├── server.R: <em>outputs plots, maps, and connects the buttons
@@ -542,9 +547,32 @@ precipitation totals for 2006-2064.</p>
 <p>Data for wildfire, flooding, and sea level rise were downloaded
 directly from their sources and stored in a remote server for use.</p>
 <p>2. Methods for processing the data:</p>
-<p>Data were processed in R Studio using Quarto Docs. Tabular data were
-cleaned and summarized over a smaller range of years. Spatial data were
-cleaned and reclassified to serve mapping purposes.</p>
+<p>All data were processed in R Studio using Quarto Docs. Tabular data
+for extreme heat and precipitation first used the retrieved historical
+data to calculate a threshold value to classify an extreme event. The
+threshold was determined to be the 98th percentile value of observed
+historical data for California. For extreme heat, this is 98°F. For
+extreme precipitation, this is 0.73 inches. Then, projected daily values
+exceeding these thresholds were assigned a 1, and those not exceeding
+assigned a 0. The count of projected extreme days within each year from
+2005-2064 was then assigned to each California public school.</p>
+<p>Spatial data was mainly processed to serve mapping purposes in the
+dashboard. The wildfire raster was clipped to the boundaries of
+California and reclassified. The mean wildfire hazard potential score
+for each school area was also derived and attached to each school. The
+original FEMA flood polygons have many different classifications, which
+were reclassified into three categories: high risk, moderate to low
+risk, and undetermined risk. The percentage of each school area that
+falls within a high risk flood zone was also attached to each school.
+The sea level rise polygons simply describe the extent of flooding under
+a 0.8 feet sea level rise scenario and a 100-year coastal storm. The
+polygons were simplified to decrease map load times in the dashboard.
+The percentage of each school area affected by the sea level rise
+scenario and a 100-year coastal storm were also attached to each
+school.</p>
+<p>To read a more detailed description of data processing, please refer
+to the “Summary of Solution Design” section in CASAschools Technical
+Documentation: <a href="https://bren.ucsb.edu/projects/climate-hazards-data-integration-and-visualization-climate-adaptation-solutions" class="uri">https://bren.ucsb.edu/projects/climate-hazards-data-integration-and-visualization-climate-adaptation-solutions</a></p>
 <p>3. Instrument- or software-specific information needed to interpret
 the data: &lt;include full name and version of software, and any
 necessary packages or libraries needed to run scripts&gt;</p>
@@ -752,35 +780,79 @@ necessary packages or libraries needed to run scripts&gt;</p>
 tables and spatial data needed for the California Schools Climate
 Hazards Dashboard.</p>
 <ol style="list-style-type: decimal">
-<li><p>extreme_heat.csv</p>
+<li><p>extreme_heat.csv: <em>contains the total number of projected
+extreme heat days for every California public school between
+2006-2064</em></p>
 <ol style="list-style-type: decimal">
 <li><p>number of variables: 7</p></li>
 <li><p>number of cases/rows: 1180944</p></li>
-<li><p>variable list: CDSCode, year, total, scenario, DistrictNa,
-SchoolName</p></li>
-<li><p>missing data code: NA</p></li>
-<li><p>specialized formats or other abbreviations used:</p></li>
+<li><p>relevant variables:</p>
+<ol style="list-style-type: decimal">
+<li><p>CDSCode: <em>unique school identifier</em></p></li>
+<li><p>year: <em>year from 2006-2064</em></p></li>
+<li><p>total: <em>total number of extreme heat days in a given year for
+a given RCP scenario</em></p></li>
+<li><p>scenario: <em>Representative Concentration Pathway (RCP), either
+4.5 or 8.5</em></p></li>
+<li><p>DistrictNa: <em>school district</em></p></li>
+<li><p>SchoolName: <em>school name</em></p></li>
 </ol></li>
-<li><p>extreme_precipitation.csv</p>
+<li><p>missing data code: NA</p></li>
+</ol></li>
+<li><p>extreme_precipitation.csv: <em>contains the total number of
+projected extreme precipitation days for every California public school
+between 2006-2064</em></p>
 <ol style="list-style-type: decimal">
 <li><p>number of variables: 9</p></li>
 <li><p>number of cases/rows: 1180944</p></li>
-<li><p>variable list: …1, CDSCode, year, total, century, scenario, City,
-DistrictNa, SchoolName</p></li>
-<li><p>missing data code: NA</p></li>
-<li><p>specialized formats or other abbreviations used:</p></li>
+<li><p>relevant variables:</p>
+<ol style="list-style-type: decimal">
+<li><p>CDSCode: <em>unique school identifier</em></p></li>
+<li><p>year: <em>year from 2006-2064</em></p></li>
+<li><p>total: <em>total number of extreme precipitation days in a given
+year for a given RCP scenario</em></p></li>
+<li><p>scenario: <em>Representative Concentration Pathway (RCP), either
+4.5 or 8.5</em></p></li>
+<li><p>City: <em>city that the school is in</em></p></li>
+<li><p>DistrictNa: <em>school district</em></p></li>
+<li><p>SchoolName: <em>school name</em></p></li>
 </ol></li>
-<li><p>schools_hazards_intervals.csv</p>
+<li><p>missing data code: NA</p></li>
+</ol></li>
+<li><p>schools_hazards_intervals.csv: <em>contains a single number
+summary of each hazard for each school, the normalized score from 0-5 of
+each hazard for each school, and the total score</em></p>
 <ol style="list-style-type: decimal">
 <li><p>number of variables: 13</p></li>
 <li><p>number of cases/rows: 10008</p></li>
-<li><p>variable list: CDSCode, SchoolName, DistrictNa, slr_percent,
-FEMA_percent, schools_heat, schools_precip, whp, flood_score, slr_score,
-heat_score, precip_score, hazard_score</p></li>
-<li><p>missing data code: NA</p></li>
-<li><p>specialized format or other abbreviations used:</p></li>
+<li><p>relevant variables:</p>
+<ol style="list-style-type: decimal">
+<li><p>CDSCode: <em>unique school identifier</em></p></li>
+<li><p>SchoolName: <em>school name</em></p></li>
+<li><p>DistrictNa: <em>school district</em></p></li>
+<li><p>slr_percent: <em>percentage of school area affected by sea level
+rise and a 100-year coastal storm</em></p></li>
+<li><p>FEMA_percent: <em>percentage of school area within a high risk
+flood zone</em></p></li>
+<li><p>schools_heat: <em>total number of extreme heat days between
+2025-2030</em></p></li>
+<li><p>schools_precip: <em>total number of extreme precipitation days
+between 2025-2030</em></p></li>
+<li><p>whp: <em>mean wildfire hazard potential score from
+0-5</em></p></li>
+<li><p>flood_score: <em>FEMA_percent normalized from 0-5</em></p></li>
+<li><p>slr_score: <em>slr_percent normalized from 0-5</em></p></li>
+<li><p>heat_score: <em>schools_heat normalized from 0-5</em></p></li>
+<li><p>precip_score: <em>schools_precip normalized from
+0-5</em></p></li>
+<li><p>hazard_score: <em>the total hazard score, or the sum of whp,
+flood_score, slr_score, heat_score, and precip_score</em></p></li>
 </ol></li>
-<li><p>ca_slr_simple.shp</p>
+<li><p>missing data code: NA</p></li>
+</ol></li>
+<li><p>ca_slr_simple.shp: <em>simplified polygons describing flooding
+extent under 0.8 feet of sea level rise (projected 2050 sea levels) and
+a 100-year coastal storm for California</em></p>
 <ol style="list-style-type: decimal">
 <li><p>number of variables: 2</p></li>
 <li><p>number of features: 82</p></li>
@@ -788,7 +860,9 @@ heat_score, precip_score, hazard_score</p></li>
 <li><p>missing data code: NA</p></li>
 <li><p>coordinate reference system: EPSG 4326</p></li>
 </ol></li>
-<li><p>ca_slr_2000_simple.shp</p>
+<li><p>ca_slr_2000_simple.shp: <em>simplified polygons describing
+flooding extent with no sea level rise (2000 sea levels) and a 100-year
+coastal storm for California</em></p>
 <ol style="list-style-type: decimal">
 <li><p>number of variables: 2</p></li>
 <li><p>number of features: 95</p></li>
@@ -796,7 +870,9 @@ heat_score, precip_score, hazard_score</p></li>
 <li><p>missing data code: NA</p></li>
 <li><p>coordinate reference system: EPSG 4326</p></li>
 </ol></li>
-<li><p>whp_reclass2012.tif</p>
+<li><p>whp_reclass2012.tif: <em>a raster of wildfire hazard potential
+for California from 2012 reclassified to very low, low, moderate, high,
+and very high</em></p>
 <ol style="list-style-type: decimal">
 <li><p>raster file format: GeoTIFF</p></li>
 <li><p>raster dimensions: 3871 rows, 3334 columns</p></li>
@@ -804,7 +880,9 @@ heat_score, precip_score, hazard_score</p></li>
 <li><p>coordinate reference system: EPSG 3857</p></li>
 <li><p>missing data code: NA</p></li>
 </ol></li>
-<li><p>whp_reclass.tif</p>
+<li><p>whp_reclass.tif: <em>a raster of wildfire hazard potential for
+California from 2023 reclassified to very low, low, moderate, high, and
+very high</em></p>
 <ol style="list-style-type: decimal">
 <li><p>raster file format: GeoTIFF</p></li>
 <li><p>raster dimensions: 3871 rows, 3334 columns</p></li>
@@ -812,7 +890,9 @@ heat_score, precip_score, hazard_score</p></li>
 <li><p>coordinate reference system: EPSG 3857</p></li>
 <li><p>missing data code: NA</p></li>
 </ol></li>
-<li><p>fema_reclass_simple.shp</p>
+<li><p>fema_reclass_simple.shp: <em>simplified polygons describing flood
+risk for California reclassified to high risk, moderate to low risk, and
+undetermined risk</em></p>
 <ol style="list-style-type: decimal">
 <li><p>number of variables: 24</p></li>
 <li><p>number of features: 57136</p></li>

@@ -17,7 +17,7 @@ through School Community Hubs
 A. Principal Investigator Contact Information Name: Liane Chen, Charlie
 Curtin, Kristina Glass, and Hazel Vaquero
 
-Institution: University of California Santa Barbara Bren School of
+Institution: University of California Santa Barbara, Bren School of
 Environmental Science & Management
 
 Address: Bren Hall, 2400 University of California, Santa Barbara, CA
@@ -194,19 +194,9 @@ organization: <https://github.com/CASAschools>
 
 │ ├── flooding-FEMA
 
-│ │ ├── FEMA_data_prep.qmd
+│ │ ├── FEMA_schools.qmd: *Joined high risk with schools to find percentage of area*
 
-│ │ ├── FEMA_flood.Rproj
-
-│ │ ├── FEMA.qmd
-
-│ │ ├── FEMA_schools.qmd
-
-│ │ ├── FEMA_state.qmd
-
-│ │ ├── flooding_mapping.qmd
-
-│ │ └── flooding.R
+│ │ └── flooding_mapping.qmd: *Binned risk categories into high, moderate to low, and undetermined and plotted leaflet*
 
 │ ├── LICENSE
 
