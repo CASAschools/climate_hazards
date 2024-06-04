@@ -1,7 +1,4 @@
 
-
-
-
 ```{r}
 # Load library
 library(tidyverse)
@@ -68,5 +65,26 @@ write.csv(extreme_heat, "/capstone/casaschools/shiny_dashboard/data/extreme_heat
 
 
 ex_h <- read.csv("/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+```
+
+
+
+```{r}
+extreme_heat <- read_csv("/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+
+colnames(extreme_heat)
+
+extreme_heat_index <- extreme_heat %>% 
+  filter(between(year, 2025,2030),
+         scenario == "High greenhouse gas emissions") %>% 
+  group_by(CDSCode) %>% 
+  summarise(total_days = sum(total))
+
+
+# Set options to display full numbers
+options(scipen = 999)
+
+write.csv(extreme_heat_index,"/capstone/casaschools/hazard_summary/individual_tables/schools_extreme_heat.csv")
+
 ```
 
