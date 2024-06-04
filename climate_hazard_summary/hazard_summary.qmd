@@ -1,0 +1,309 @@
+```{r}
+library(tidyverse)
+library(sf)
+library(gridExtra)
+library(regressinator)
+library(dichromat)
+```
+
+# read in data
+```{r}
+# bin by intervals, excluding 0s from the calculations
+# read in schools data and remove closed school
+ca_schools <- st_read("/capstone/casaschools/schools_data/schools_buffer_clip/schools_buffer_clip.shp",
+                      quiet = TRUE) %>% 
+  as.data.frame() %>% subset(SchoolName !="Access Academy")
+
+#read in hazard score for schools and remove closed school and rename columns
+
+#drop index column and reclass CDSCode
+heat <- read_csv("/capstone/casaschools/hazard_summary/individual_tables/schools_extreme_heat.csv") %>% 
+  rename(schools_heat = total_days)
+
+heat <- heat[,-1]
+
+heat$CDSCode <- as.character(heat$CDSCode)
+
+#add back in zeros to CDSCode
+heat <- heat %>% 
+  group_by(CDSCode, schools_heat) %>% 
+  mutate(CDSCode = as.character(CDSCode),
+         count = nchar(CDSCode),
+         # some rows are missing 0's in front
+         CDSCode = ifelse(count == 13, paste0("0", CDSCode),
+                              CDSCode))
+
+# drop index column
+precip <- read_csv("/capstone/casaschools/hazard_summary/individual_tables/schools_extreme_precip.csv") %>% 
+  rename(schools_precip = total_days)
+
+precip <- subset(precip, select = -c(...1)) 
+
+
+wildfire <- read_csv("/capstone/casaschools/hazard_summary/individual_tables/schools_whp.csv") %>% subset(SchoolName !="Access Academy")
+
+slr <- read_csv("/capstone/casaschools/hazard_summary/individual_tables/schools_slr.csv") %>% subset(SchoolName !="Access Academy")
+
+flood <- read_csv("/capstone/casaschools/hazard_summary/individual_tables/flood_schools.csv") %>% subset(SchoolName !="Access Academy")
+```
+
+# bining by interval
+```{r}
+## separate observations from each dataframe into 0s and not 0
+# separate and add a column with the hazard name and score
+heat_0 <- heat %>% 
+  filter(schools_heat == 0) %>%
+  mutate(heat_score = schools_heat)
+
+precip_0 <- precip %>% 
+  filter(schools_precip == 0) %>% 
+  mutate(precip_score = schools_precip)
+
+slr_0 <- slr %>% 
+  filter(slr_percent == 0) %>%
+  mutate(slr_score = slr_percent)
+
+flood_0 <- flood %>% 
+  filter(FEMA_percent == 0) %>% 
+  mutate(flood_score = FEMA_percent)
+
+whp_0 <- wildfire %>% 
+  filter(whp == 0) %>% 
+  mutate(whp_score = whp)
+
+# not zeros
+heat_num <- heat %>% 
+  filter(schools_heat != 0)
+
+precip_num <- precip %>% 
+  filter(schools_precip != 0)
+
+slr_num <- slr %>% 
+  filter(slr_percent != 0)
+
+flood_num <- flood %>% 
+  filter(FEMA_percent != 0)
+
+whp_num <- wildfire %>% 
+  filter(whp != 0) %>% 
+  mutate(whp_score = whp)
+
+## bin the dataframes with values into intervals or quantiles. since wildfire doesn't have any areas with 0 and is already on a scale from 1-5, we don't need to transform it
+# equal intervals for extreme heat
+range(heat_num$schools_heat)
+seq(0, 909, 181.8)
+
+heat_intervals <- heat_num %>% 
+  bin_by_interval(schools_heat, breaks = seq(0, 909, 181.8)) %>% 
+  rename(heat_score = .bin)
+
+# equal intervals for extreme precipitation
+range(precip_num$schools_precip)
+seq(0, 1350, 270)
+
+precip_intervals <- precip_num %>% 
+  bin_by_interval(schools_precip, breaks = seq(0, 1350, 270)) %>% 
+  rename(precip_score = .bin)
+
+# equal intervals  for flooding
+range(flood_num$FEMA_percent)
+seq(0, 97.6, 19.52)
+
+flood_intervals <- flood_num %>% 
+  bin_by_interval(FEMA_percent, breaks = seq(0, 97.6, 19.52)) %>% 
+  rename(flood_score = .bin)
+
+# equal intervals for sea level rise
+range(slr_num$slr_percent)
+seq(0, 94.5, 18.9)
+
+slr_intervals <- slr_num %>% 
+  bin_by_interval(slr_percent, breaks = seq(0, 94.5, 18.9)) %>% 
+  rename(slr_score = .bin)
+
+## row bind the intervals and the zeros dataframes together
+heat <- rbind(heat_0, heat_intervals)
+
+precip <- rbind(precip_0, precip_intervals)
+
+flood <- rbind(flood_0, flood_intervals)
+
+slr <- rbind(slr_0, slr_intervals)
+
+wildfire <- rbind(whp_0, whp_num)
+
+## join all of the tables together 
+#join tables
+ca_schools_hazards <- ca_schools %>% 
+  left_join(heat, by="CDSCode") %>% 
+  left_join(precip, by = "CDSCode") %>% 
+  left_join(wildfire, by = "CDSCode") %>% 
+  left_join(slr, by = "CDSCode") %>% 
+  left_join(flood, by = "CDSCode")
+
+# calculate the hazard summary score for each school
+ca_schools_hazards <- ca_schools_hazards %>% 
+  mutate(hazard_score = heat_score + flood_score + slr_score + precip_score + whp_score)
+
+# select relevant columns
+schools_hazards_intervals <- ca_schools_hazards %>% 
+  select(CDSCode, SchoolName.x, DistrictNa, slr_percent, FEMA_percent, schools_heat, schools_precip, 
+         whp, whp_score, flood_score, slr_score, heat_score, precip_score, hazard_score) %>% 
+  rename(SchoolName = SchoolName.x)
+
+# write output to the server
+write_csv(schools_hazards_intervals, file = "/capstone/casaschools/hazard_summary/schools_hazards_intervals.csv")
+
+test <- read_csv("/capstone/casaschools/hazard_summary/schools_hazards_intervals.csv")
+
+# find the count of schools in each bin for each hazard
+counts <- test %>% 
+  pivot_longer(cols = c(whp, heat_score, precip_score, flood_score, slr_score),
+                   names_to = "variable", values_to = "value") %>% 
+  group_by(variable, value) %>% 
+  summarize(count = n())
+```
+
+### plotting the hazard summary score
+
+The following code is adapted from the code used to create the plot in the California Schools Climate Hazards Dashboard. The plot elements and set up are the same, only the dashboard uses reactive filtering to select a school to plot. Here, we manually select a school first.
+
+```{r}
+# load in data
+hazards_summary <- read_csv("/capstone/casaschools/hazard_summary/schools_hazards_intervals.csv")
+
+## hazard summary plot set up -----
+# labels for each climate hazard
+hazard_labels <- c("Sea Level Rise", "Flooding", "Extreme\nPrecipitation", "Wildfire", "Extreme Heat")
+
+# custom color palette
+custom_pal <- c("white", "#FFCF73", "#F2EAAB", "#8FD2E3", "#6B9EB8", "#5A5E9E")
+
+# create gradient dataframe for geom_tile in the total summary score plot
+create_gradient_df <- function(n = 500) {
+  data.frame(
+    x = seq(0, 500, length.out = n),
+    color = colorRampPalette(c("white", "#FFCF73", "#F2EAAB", "#8FD2E3", "#6B9EB8", "#5A5E9E"))(500)
+  )
+}
+
+df <- create_gradient_df()
+
+# select a single school to plot
+dp_hazards <- hazards_summary %>% 
+  filter(SchoolName == "Dos Pueblos Senior High")
+```
+
+### lollipop chart
+```{r}
+## lollipop chart of individual hazards -----
+# pivot longer to create dataframe for the lollipop plot
+lollipop_df <- dp_hazards %>%
+  pivot_longer(cols = c(whp, heat_score, precip_score, flood_score, slr_score),
+               names_to = "variable", values_to = "value") %>% 
+  mutate(variable = factor(variable, levels = c("slr_score", "flood_score", "precip_score", "whp", "heat_score")))
+
+lollipop_chart <- ggplot(lollipop_df, 
+                         aes(y = variable, x = value)) +
+  # create a segment, the length of which corresponds to the hazard score
+  geom_segment(aes(y = variable, yend = variable, x = -.4, xend = value),
+               color = "skyblue",
+               size = 3) +
+  # add a point at the end of the segment
+  geom_point(aes(fill = value),
+             size = 12,
+             shape = 21,
+             color = "black",
+             alpha = .9) +
+  # add hazard score as a label to the point
+  geom_text(aes(label = value), vjust = 0.5, hjust = 0.5, 
+            color = "black", size = 6, fontface = "bold", family = "sans") +
+  # make sure x-axis draws from -0.4 to 5
+  scale_x_continuous(limits = c(-0.4, 5)) +
+  # map a gradient fill from yellow to purple for the hazard summary points
+  scale_fill_gradientn(colors = custom_pal,
+                       limits = c(0,5)) +
+  theme_light(base_family = "sans") +
+  # add custom labels to change the lollipop labels from the shorthand column names
+  scale_y_discrete(labels = hazard_labels,
+                   expand = c(0.1, 0.3)) +
+  theme(panel.grid.major.y = element_blank(), # remove y-axis grid lines
+        # remove panel border
+        panel.border = element_blank(),
+        # remove y-axis grid lines
+        panel.grid.minor.y = element_blank(),
+        # remove minor x-axis grid lines
+        panel.grid.minor.x = element_blank(),
+        # remove legend
+        legend.position = "none",
+        # customize y-axis label text
+        axis.text.y = element_text(size = 16, color = "black", family = "sans", 
+                                   margin = margin(r = -10)),
+        axis.text.x = element_text(size = 12),
+        # remove y-axis ticks
+        axis.ticks.y = element_blank(),
+        # increase plot margins
+        plot.margin = unit(c(0.1, 0, 0.1, 0), "cm")) +
+  labs(y = NULL,
+       x = NULL)
+```
+
+### gradient fill bar for total hazard score
+```{r}
+## gradient fill bar of total hazard summary score -----
+total_score <- ggplot(dp_hazards, 
+                      aes(y = as.factor(1))) +  # need to create a dummy y-axis
+  geom_tile(data = df, aes(x = x, y = 1, fill = color),
+            color = NA,
+            height = 0.75,
+            width = 1.14) +
+  scale_fill_identity() +  # use the fill color directly
+  # plot a black line at the value of the hazard score
+  geom_segment(aes(y = 0.5, yend = 1.5, x = hazard_score * 20, xend = hazard_score * 20),
+               color = "black",
+               linewidth = 1.5) +
+  # label the hazard score, multiplying by 20 to account for the scale of the bar
+  geom_text(aes(x = hazard_score * 20, y = 1, label = hazard_score),
+            hjust = -.2, color = "black", size = 8) +
+  labs(y = NULL,
+       x = NULL) +
+  theme_minimal() +
+  theme(aspect.ratio = 1/10, # adjust aspect ratio to move the plot title and x-axis labels closer
+        plot.title = element_text(face = "bold", size = 20),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(size = 14)) +
+  scale_x_continuous(breaks = c(0, 100, 200, 300, 400, 500), # set the break positions
+                     labels = c("0", "5", "10", "15", "20", "25")) # set the custom labels
+```
+
+### label plot for "lower risk" to "higher risk"
+```{r}
+## create label plot -----
+risk_label <- ggplot() + 
+  # add lower risk label
+  annotate("text", x = 0, y = 0.5, label = "lower risk", hjust = -1.4, 
+           size = 5, family = "sans") + 
+  # add higher risk label
+  annotate("text", x = 1, y = 0.5, label = "higher risk", hjust = 1, 
+           size = 5, family = "sans") +
+  # draw an arrow between the two labels
+  annotate("segment", x = 0.35, xend = 0.8, y = 0.5, yend = 0.5,
+           arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
+  # remove background axis and text elements
+  theme_void() +
+  # increase plot margins
+  theme(plot.margin = unit(c(0.3, 0, 0.3, 0), "cm"))
+```
+
+### stitch the plots together
+```{r}
+## stitch them all together -----
+grid.arrange(lollipop_chart, risk_label, total_score, 
+             ncol = 1,
+             heights = c(1.8, .5, .8))
+```
+
