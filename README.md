@@ -3,6 +3,8 @@
 ## Description
 The CASAschools capstone team identified 5 climate hazards that are actionable, relevant to schools, and align with California's 4th climate change assessment. These include wildfire, extreme heat, extreme precipitation, flooding, and sea-level rise. This repository contains Quarto Qmd's for each climate variable, the hazard summary metric, and school closure days due to natural disasters with detailed explanations of how the data was wrangled and prepared for summarizing and visualization in the interactive dashboard. 
 
+To view more details about the analysis, please view the technical documentation here: https://bren.ucsb.edu/projects/climate-hazards-data-integration-and-visualization-climate-adaptation-solutions
+
 ## Table of Contents
 - Data Sources
 - Usage
@@ -14,7 +16,7 @@ The 5 climate hazards were obtained from the following open source databases:
 - Extreme heat: [Cal-Adapt caladaptR](https://ucanr-igis.github.io/caladaptr/)
 - Flooding: [Federal Emergency Management Agency (FEMA)](https://hazards-fema.maps.arcgis.com/apps/webappviewer/index.html?id=8b0adb51996444d4879338b5529aa9cd)
 - Extreme precipitation: [Cal-Adapt caladaptR](https://ucanr-igis.github.io/caladaptr/)
-- Sea Level Rise: [National Oceanic and Atmospheric Administration (NOAA)](https://www.climate.gov/maps-data/dataset/sea-level-rise-map-viewer)
+- Sea Level Rise: [U.S. Geological Survey (USGS) Coastal Storm Modeling System](https://www.usgs.gov/centers/pcmsc/science/coastal-storm-modeling-system-cosmos)
 - Wildfire: [U.S. Department of Agriculture Forest Service (USFS) Wildfire Hazard Potential](https://www.firelab.org/project/wildfire-hazard-potential)
 
 
