@@ -71,10 +71,5 @@ This repository contains individual folders for each climate hazard where wrangl
     ├── wildfire_mapping.qmd
     └── wildfire_prep.qmd
 ```
-
- 
-## Authors 
-The authors of this dashboard are [Liane Chen](https://github.com/lchenhub), [Charlie Curtin](https://github.com/charliecurtin1), [Kristina Glass](https://github.com/kristinaglass), and [Hazel Vaquero](https://github.com/hazelvaq). For any comments or questions about this dashboard, please reach out to @cp-casaschools@bren.ucsb.edu
-
-## Licence
+## License
 This work is licensed under a [Creative Commons Zero v1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/deed.en).
