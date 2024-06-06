@@ -28,7 +28,18 @@ This repository contains folders with Quarto Documents detailing how to access e
 To view packages used, versions, and software requirements, please view the "session_info.txt" file.
 
 
-### File Structure
+## File Structure
+This repository contains individual folders for each climate hazard where wrangling and cleaning is conducted. Descriptions of each folder and file can be viewed in the table below.
+
+|Folders/Files|Description|
+--------------|-----------|
+| calmatters | Cleaning and prepping calmatters school closure data for dashboard |
+| climate_hazard_summary| Development of climate hazard summary score and plotting example |
+| extreme_heat | Calculation of maximum daily temperature threshold, number of extreme heat days, and dashboard prep |
+| flooding-FEMA | Clipping of flood map to school boundaries, reassigning values, and mapping examples|
+| precipitation | Calculation of maximum daily precipitation threshold, number of extreme precipitation days, and dashboard prep|
+| sea_level_rise | Clipping of sea level rise map's to school boundaries, reassigning values, and mapping examples (2000 & 2050)|
+| wildfire | lipping of wildfire map's to school boundaries, reassigning values, and mapping examples (2012 & 2023)|
 
 ```bash
 ├── calmatters
