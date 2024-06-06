@@ -1,4 +1,4 @@
-# Climate Hazards
+# Climate Hazards Data Access and Wrangling 
 
 ## Description
 The CASAschools capstone team identified 5 climate hazards that are actionable, relevant to schools, and align with California's 4th climate change assessment. These include wildfire, extreme heat, extreme precipitation, flooding, and sea-level rise. This repository contains Quarto Qmd's for each climate variable, the hazard summary metric, and school closure days due to natural disasters with detailed explanations of how the data was wrangled and prepared for summarizing and visualization in the interactive dashboard. 
