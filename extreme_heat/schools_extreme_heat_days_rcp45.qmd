@@ -30,8 +30,6 @@ Due to the large size of the data the years of interest are divided up into sect
 
 ### RCP 4.5 MID CENTURY 2000 - 2006
 
-
-##### NEEDS TO BE UPDATED
 ```{r}
 
 # Import LOCA grid 
@@ -118,7 +116,7 @@ ca_schools_et_year <- ca_schools_et_sf %>%
 
 length(unique(ca_schools_et_year$SCode))
 
-write.csv(ca_schools_et_year, "/capstone/casaschools/extreme_heat/rcp4.5_2006_2034.csv")
+# write.csv(ca_schools_et_year, "/capstone/casaschools/extreme_heat/rcp4.5_2006_2034.csv")
 
 
 
@@ -216,7 +214,7 @@ ca_schools_et_year <- ca_schools_et_sf %>%
 
 length(unique(ca_schools_et_year$SCode))
 
-write.csv(ca_schools_et_year, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/rcp4.5_2006_2034.csv")
+# write.csv(ca_schools_et_year, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/rcp4.5_2006_2034.csv")
 
 ```
 
@@ -312,7 +310,7 @@ ca_schools_et_year <- ca_schools_et_sf %>%
 
 #length(unique(ca_schools_et_year$SCode))
 
-write.csv(ca_schools_et_year, "/capstone/casaschools/extreme_heat/rcp4.5_2035_2064.csv")
+# write.csv(ca_schools_et_year, "/capstone/casaschools/extreme_heat/rcp4.5_2035_2064.csv")
 
 ```
 
@@ -346,7 +344,7 @@ heat_rcp45_2000_2064 <- heat_rcp45_2000_2064 %>%
   select(-X)
 
 ### export csv to shinydashboard data
-write.csv(heat_rcp45_2000_2064, "/capstone/casaschools/extreme_heat/heat_rcp45_2000_20064.csv")
+# write.csv(heat_rcp45_2000_2064, "/capstone/casaschools/extreme_heat/heat_rcp45_2000_20064.csv")
 
 ```
 

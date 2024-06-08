@@ -1,9 +1,15 @@
+---
+title: "Dashboard Prep"
+format: html
+author: "CASAschools"
+---
 
 ```{r}
 # Load library
 library(tidyverse)
 ```
 
+# Dashboard Prep for Extreme Heat
 
 ```{r}
 # Load RCP 4.5
@@ -49,7 +55,6 @@ extreme_heat <- extreme_heat %>%
 
 ```
 
-
 ```{r}
 # remove geometry of school points
 school_points <- school_points %>% st_drop_geometry()
@@ -61,13 +66,11 @@ extreme_heat <- left_join(extreme_heat, school_points, by = "CDSCode")
 length(unique(extreme_heat$CDSCode))
 
 # Export csv
-write.csv(extreme_heat, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+# write.csv(extreme_heat, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
 
 
 ex_h <- read.csv("/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
 ```
-
-
 
 ```{r}
 extreme_heat <- read_csv("/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
@@ -84,7 +87,6 @@ extreme_heat_index <- extreme_heat %>%
 # Set options to display full numbers
 options(scipen = 999)
 
-write.csv(extreme_heat_index,"/capstone/casaschools/hazard_summary/individual_tables/schools_extreme_heat.csv")
+# write.csv(extreme_heat_index,"/capstone/casaschools/hazard_summary/individual_tables/schools_extreme_heat.csv")
 
 ```
-

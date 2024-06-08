@@ -4,9 +4,12 @@ format: html
 ---
 
 ```{r}
+#Load in ibraries
 library(tidyverse)
 library(sf)
 ```
+
+# Data Cleaning
 
 ```{r}
 options(scipen = 999)
@@ -123,7 +126,7 @@ current45 <- read.csv("/capstone/casaschools/precipitation/curcentury45.csv")
  
 ```
 
-# join scenarios
+# Join Scenarios
 
 ```{r}
 century_totals_combined <- read.csv("/capstone/casaschools/precipitation/century_totals_combined.csv")
@@ -164,7 +167,11 @@ year_totals_combined45 <- year_totals_combined45 %>%
 
 # bind high emissions and low emissions scenarios
 years_all <- rbind(year_totals_combined, year_totals_combined45)
+```
 
+Each school has a unique 14 digit associated CDSCode. When working with the California_Schools_2022-23 dataset the CDSCode loses its initial 0. To prepare the extreme heat data to be joined with the rest of the hazards this missing 0 needs to be added back.
+
+```{r}
 #add back in zeros
 years_all_zeros <- years_all %>%
   group_by(CDSCode, year, total, century, scenario) %>%
@@ -192,7 +199,8 @@ rcp85_zeros <- year_totals_combined %>%
 # write.csv(years_all_zeros, "/capstone/casaschools/shiny_dashboard/data/precipitation/years_all_zeros.csv")
 ```
 
-# Edit for dashboard
+# Data preparation for dashboard
+
 ```{r}
 precip <- read.csv("/capstone/casaschools/shiny_dashboard/data/precipitation/years_all_zeros.csv")
 
@@ -226,8 +234,6 @@ test <- read.csv("/capstone/casaschools/shiny_dashboard/data/precipitation/extre
 
 ```
 
-
-
 # RCP 8.5 2030 - 2035 for hazard summary
 
 ```{r}
@@ -252,4 +258,3 @@ schools_extreme_precip
 
 #write.csv(schools_extreme_precip, "/capstone/casaschools/hazard_summary/individual_tables/schools_extreme_precip.csv")
 ```
-
