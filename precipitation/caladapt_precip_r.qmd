@@ -1,6 +1,7 @@
 ---
 title: "caladapt-r"
 format: html
+author: "CASAschools"
 ---
 
 ```{r}
@@ -109,8 +110,6 @@ data_df <- counties_in_school %>%
 
 ```
 
-
-
 ```{r}
 # Empty data frame
 percentile_2 <- data.frame()
@@ -152,14 +151,9 @@ for (name in data_df$DistrictNa) {
 
 ```
 
-
 ## Second Approach
 
-Clipping the school boundaries with CalAdapt pre disposed counties boundaries 
-worked for only 3 school districts. 5 school districts are still"fall outside 
-the area covered by Cal-Adapt". To work around this random points will be 
-generated in each remaining 5 school districts. These points will be used to determine 
-the historical maximum temperature.
+Clipping the school boundaries with CalAdapt pre disposed counties boundaries worked for only 3 school districts. 5 school districts are still"fall outside the area covered by Cal-Adapt". To work around this random points will be generated in each remaining 5 school districts. These points will be used to determine the historical maximum precipitation.
 
 ```{r}
 set.seed(123)
@@ -219,7 +213,6 @@ for (name in data_df$DistrictNa){
 
 ```
 
-
 ```{r}
 # # Join 98th percentile dataframes
  percentile_all <- rbind(percentile, percentile_2, percentile_3)
@@ -237,5 +230,4 @@ threshold <- percentile_all %>%
 # 
 
 ```
-
 
