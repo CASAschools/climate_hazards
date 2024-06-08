@@ -1,4 +1,4 @@
-# Climate Hazards
+# Climate Hazards Data Access and Wrangling 
 
 ## Description
 The CASAschools capstone team identified 5 climate hazards that are actionable, relevant to schools, and align with California's 4th climate change assessment. These include wildfire, extreme heat, extreme precipitation, flooding, and sea-level rise. This repository contains Quarto Qmd's for each climate variable, the hazard summary metric, and school closure days due to natural disasters with detailed explanations of how the data was wrangled and prepared for summarizing and visualization in the interactive dashboard. 
@@ -28,7 +28,18 @@ This repository contains folders with Quarto Documents detailing how to access e
 To view packages used, versions, and software requirements, please view the "session_info.txt" file.
 
 
-### File Structure
+## File Structure
+This repository contains individual folders for each climate hazard where wrangling and cleaning is conducted. Descriptions of each folder and file can be viewed in the table below.
+
+|Folders/Files|Description|
+--------------|-----------|
+| calmatters | Cleaning and prepping calmatters school closure data for dashboard |
+| climate_hazard_summary| Development of climate hazard summary score and plotting example |
+| extreme_heat | Calculation of maximum daily temperature threshold, number of extreme heat days, and dashboard prep |
+| flooding-FEMA | Clipping of flood map to school boundaries, reassigning values, and mapping examples|
+| precipitation | Calculation of maximum daily precipitation threshold, number of extreme precipitation days, and dashboard prep|
+| sea_level_rise | Clipping of sea level rise map's to school boundaries, reassigning values, and mapping examples (2000 & 2050)|
+| wildfire | lipping of wildfire map's to school boundaries, reassigning values, and mapping examples (2012 & 2023)|
 
 ```bash
 ├── calmatters
@@ -60,10 +71,5 @@ To view packages used, versions, and software requirements, please view the "ses
     ├── wildfire_mapping.qmd
     └── wildfire_prep.qmd
 ```
-
- 
-## Authors 
-The authors of this dashboard are [Liane Chen](https://github.com/lchenhub), [Charlie Curtin](https://github.com/charliecurtin1), [Kristina Glass](https://github.com/kristinaglass), and [Hazel Vaquero](https://github.com/hazelvaq). For any comments or questions about this dashboard, please reach out to @cp-casaschools@bren.ucsb.edu
-
-## Licence
+## License
 This work is licensed under a [Creative Commons Zero v1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/deed.en).
