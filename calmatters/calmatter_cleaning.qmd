@@ -136,7 +136,10 @@ disaster_days1 <- disaster_days %>%
 
 
 # rejoin with calschools
-school_closure <- left_join(calschools, disaster_days1, by = "cds_code")
+school_closure <- left_join(calschools, disaster_days1, by = "cds_code") %>% 
+  rename(SchoolName = school,
+         DistrictNa = district,
+         CDSCODE = cds_code)
 
 write_csv(school_closure,"/capstone/casaschools/shiny_dashboard/data/calmatters/school_closure.csv")
 ```
