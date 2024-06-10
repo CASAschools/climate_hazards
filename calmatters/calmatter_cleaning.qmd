@@ -53,6 +53,7 @@ calmatters2 <- calmatters1 %>%
                               cdscode_c))
 
 ```
+
 #### Comparing Datasets
 
 ```{r}
@@ -73,7 +74,14 @@ trial2 <- merge(anti_trial, calschools, by = "cds_code")
 schools_checked <- trial2 %>% 
   select(school.y, district.y, total, cds_code) %>% 
   rename(school = school.y,
-         district = district.y) %>% rbind(.,trial)
+         district = district.y)
+
+# remove trial columns not needed
+trial <- trial %>% 
+  select(c(school, district, total, cds_code))
+  
+# Join them   
+schools_checked <- rbind(trial, schools_checked)
 
 ########### Now find the ones remaining not included in schools_checked
 ## these join them back with calmatters2 by the cdscode
@@ -93,7 +101,7 @@ anti_m <- anti_join(calmatters2, calschools, by = c("school","district","cds_cod
 write.csv(anti_calmatter, "cleaned.csv")
 ```
 
-The rows identified as missing CDSCode or without matching school name and district were manually fixed outside of this QMD file. It was decided it was the best approach as there is no open data source of updated school names and school districts. The following is working with the data that was cleaned through Excel. 
+The rows identified as missing CDSCode or without matching school name and district were manually fixed outside of this QMD file. It was decided it was the best approach as there is no open data source of updated school names and school districts. The following is working with the data that was cleaned through Excel.
 
 ```{r}
 # Import cleaned data
@@ -110,12 +118,27 @@ cleaned_calmatters <- cleaned_calmatters %>%
                               cdscode_c))
 
 
+# Clean cleancalmatters
+cleaned_calmatters <- cleaned_calmatters %>% 
+  select(c(school, district, total, cdscode_new)) %>% 
+  rename(cds_code = cdscode_new)
+
+
+
 # rejoin this data with schools_checked
-disaster_days <- merge()
+disaster_days <- rbind(schools_checked, cleaned_calmatters)
+
+# do a total count for all
+disaster_days1 <- disaster_days %>% 
+  group_by(cds_code) %>% 
+  summarise(total_days = sum(total)) %>% 
+  ungroup()
+
+
+# rejoin with calschools
+school_closure <- left_join(calschools, disaster_days1, by = "cds_code")
+
+write_csv(school_closure,"/capstone/casaschools/shiny_dashboard/data/calmatters/school_closure.csv")
 ```
-
-
-
-
 
 
