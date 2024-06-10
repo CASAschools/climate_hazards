@@ -27,6 +27,13 @@ school_points <- school_points %>% filter(Status == "Active") %>%
 
 ```
 
+There is one inactive school in the 2022-2023 school year that needs to be removed before working on getting maximum precipitation.
+
+
+Due to the large size of the data the years of interest are divided up into sections
+
+### RCP 4.5 MID CENTURY 2035 - 2064
+
 ```{r}
 # Import LOCA grid 
 locagrid_sf <- ca_locagrid_geom()
@@ -141,19 +148,19 @@ st_drop_geometry()
 ```{r}
 #Export Extreme Precipitation Totals for Mid Century Scenario
 
-write.csv(ca_schools, "/capstone/casaschools/precipitation/midcentury45.csv")
-
-write.csv(ca_schools, "precipitation/midcentury45.csv")
-
-#Export Extreme Precipitation Totals per year for Mid Century Scenario
-
-write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/midcentury45_year.csv" )
-
-write.csv(ca_schools_et_year, "precipitation/midcentury45_year.csv" )
+# write.csv(ca_schools, "/capstone/casaschools/precipitation/midcentury45.csv")
+# 
+# write.csv(ca_schools, "precipitation/midcentury45.csv")
+# 
+# #Export Extreme Precipitation Totals per year for Mid Century Scenario
+# 
+# write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/midcentury45_year.csv" )
+# 
+# write.csv(ca_schools_et_year, "precipitation/midcentury45_year.csv" )
 
 ```
 
-# 2006 to 2034
+#### RCP 4.5 CURRENT CENTURY 2006 to 2034
 
 ```{r}
 # Import LOCA grid 
@@ -268,14 +275,14 @@ st_drop_geometry()
 ```{r}
 #Export Extreme Precipitation Totals for Current Century Scenario
 
-write.csv(ca_schools, "/capstone/casaschools/precipitation/curcentury45.csv")
-
-write.csv(ca_schools, "precipitation/curcentury45.csv")
-
-#Export Extreme Precipitation Totals per year for Current Century Scenario
-
-write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/curcentury45_year.csv" )
-
-write.csv(ca_schools_et_year, "precipitation/curcentury45_year.csv" )
+# write.csv(ca_schools, "/capstone/casaschools/precipitation/curcentury45.csv")
+# 
+# write.csv(ca_schools, "precipitation/curcentury45.csv")
+# 
+# #Export Extreme Precipitation Totals per year for Current Century Scenario
+# 
+# write.csv(ca_schools_et_year, "/capstone/casaschools/precipitation/curcentury45_year.csv" )
+# 
+# write.csv(ca_schools_et_year, "precipitation/curcentury45_year.csv" )
 ```
 

@@ -14,15 +14,12 @@ library(caladaptr)
 library(tidyverse)
 ```
 
-Extreme heat day is calculated as maximum daily temperature days above 98F. This overall threshold was calculated in `extreme_heat/caladapt-r.qmd`. Determining the number of extreme heat days follows a similar approach. Still working with Cal-Adapt's Rpackage the first step is to aquire daily maximum temperature. Data is requested through Cal-Adapt's API request. Due to the size of the data and the instances of crashing the API request data was extracted at 30 year intervals for the different scenarios. This QMD is for accessing RCP8.5 data for 2006 to 2064. 
-
-
+Extreme heat day is calculated as maximum daily temperature days above 98F. This overall threshold was calculated in `extreme_heat/caladapt-r.qmd`. Determining the number of extreme heat days follows a similar approach. Still working with Cal-Adapt's Rpackage the first step is to aquire daily maximum temperature. Data is requested through Cal-Adapt's API request. Due to the size of the data and the instances of crashing the API request data was extracted at 30 year intervals for the different scenarios. This QMD is for accessing RCP8.5 data for 2006 to 2064.
 
 ```{r}
 # Load school point data
 school_points <- st_read("/capstone/casaschools/schools_data/California_Schools_2022-23/California_Schools_2022-23.shp")
 ```
-
 
 ```{r}
 # Filter to schools are active and remove unnecessary columns
@@ -30,11 +27,9 @@ school_points <- school_points %>% filter(Status == "Active") %>%
   select(c(CDSCode, DistrictNa, SchoolName))
 ```
 
-## RCP 8.5 
+## RCP 8.5
 
-### 2000-2005
-
-## No longer using historical data
+### OBSERVED / HISTORIC 2000-2005
 
 ```{r}
 
@@ -128,13 +123,10 @@ head(ca_schools_et_year)
 
 # Export file
 
-write.csv(ca_schools_et_year, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_2000_2005.csv")
+# write.csv(ca_schools_et_year, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_2000_2005.csv")
 ```
 
-
-
-
-## 2006 - 2034
+### CURRENT CENTURY 2006 - 2034
 
 ```{r}
 
@@ -227,9 +219,8 @@ ca_schools <- ca_schools_et_year %>%
 
 # Export file
 
-write.csv(ca_schools_et_year, "/capstone/casaschools/extreme_heat/rcp8.5_2006_2034.csv")
+# write.csv(ca_schools_et_year, "/capstone/casaschools/extreme_heat/rcp8.5_2006_2034.csv")
 ```
-
 
 ### MID CENTURY 2035 - 2064
 
@@ -328,17 +319,15 @@ ca_schools <- ca_schools_et_year %>%
 
 
 # Export file
-write.csv(ca_schools, "/capstone/casaschools/extreme_heat/rcp8.5_2006_2034.csv")
-
-
-write.csv(ca_schools, "/Users/hazelvaquero/CASAschools/climate_hazards/extreme_heat/output_data/ca_schools_rcp8.5_2035_2064.csv")
+# write.csv(ca_schools, "/capstone/casaschools/extreme_heat/rcp8.5_2006_2034.csv")
+# 
+# 
+# write.csv(ca_schools, "/Users/hazelvaquero/CASAschools/climate_hazards/extreme_heat/output_data/ca_schools_rcp8.5_2035_2064.csv")
 
 
 ```
 
-
 ### Combine datasets
-
 
 ```{r}
 options(scipen = 999)
@@ -361,11 +350,11 @@ heat_rcp85_2000_2064 <- heat_rcp85_2000_2064 %>%
   select(-X)
 
 ### export csv to shinydashboard data
-write.csv(heat_rcp85_2000_2064, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064.csv")
-
-write.csv(heat_rcp85_2000_2064_zeros, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064_zeros.csv")
-
-write.csv(heat_rcp85_2000_2064, "/capstone/casaschools/extreme_heat/heat_rcp85_2000_20064.csv")
+# write.csv(heat_rcp85_2000_2064, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064.csv")
+# 
+# write.csv(heat_rcp85_2000_2064_zeros, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/heat_rcp85_2000_20064_zeros.csv")
+# 
+# write.csv(heat_rcp85_2000_2064, "/capstone/casaschools/extreme_heat/heat_rcp85_2000_20064.csv")
 ```
 
 ### Data preparation for dashboard
@@ -408,9 +397,7 @@ extreme_heat <- extreme_heat %>%
 
 ```
 
-
-Each school has a unique 14 digit associated CDSCode. When working with the California_Schools_2022-23 dataset the `CDSCode` loses its initial `0`. To prepare the extreme heat data to be joined with the rest of the hazards this missing `0` needs to be added back.  
-
+Each school has a unique 14 digit associated CDSCode. When working with the California_Schools_2022-23 dataset the `CDSCode` loses its initial `0`. To prepare the extreme heat data to be joined with the rest of the hazards this missing `0` needs to be added back.
 
 ```{r}
 options(scipen = 999)
@@ -425,11 +412,8 @@ extreme_heat <- left_join(extreme_heat, school_points, by = "CDSCode")
 length(unique(extreme_heat$CDSCode))
 
 # Export csv
-write.csv(extreme_heat, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
-
-
-ex_h <- read.csv("/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+# write.csv(extreme_heat, "/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
+# 
+# 
+# ex_h <- read.csv("/capstone/casaschools/shiny_dashboard/data/extreme_heat/extreme_heat.csv")
 ```
-
-
-
